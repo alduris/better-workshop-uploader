@@ -1,11 +1,11 @@
 ﻿{
-  "id": "testmod",
-  "name": "Test Mod",
-  "version": "0.1.0",
-  "authors": "Author",
-  "description": "Put a neat description here",
-  "tags": [],
+  "id": "alduris.betterworkshop",
+  "name": "Better Workshop Uploader",
+  "version": "1.0",
+  "authors": "Alduris",
+  "description": "Improves the built-in workshop uploader",
+  "tags": ["Tools", "Accessibility", "Utility", "Workshop", "Base"],
   "requirements": [],
   "requirements_names": [],
-  "checksum_override_version": false
+  "checksum_override_version": true
 }
