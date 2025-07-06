@@ -20,6 +20,12 @@ internal sealed class Plugin : BaseUnityPlugin
     public void OnEnable()
     {
         Logger = base.Logger;
+        On.RainWorld.OnModsInit += RainWorld_OnModsInit; // menu crashes if we have it in OnEnable
+    }
+
+    private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
+    {
+        orig(self);
         try
         {
             On.Menu.Remix.InternalOI_Stats.Initialize += InternalOI_Stats_Initialize;

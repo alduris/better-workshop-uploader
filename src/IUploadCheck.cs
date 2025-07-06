@@ -8,7 +8,7 @@
         /// <summary>
         /// Display text
         /// </summary>
-        public string DisplayText { get; }
+        public string Name { get; }
 
         /// <summary>
         /// Makes the check only display in the event that the check fails

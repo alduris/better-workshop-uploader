@@ -1,8 +1,11 @@
 ﻿namespace BetterWorkshopUploader.Checks
 {
+    /// <summary>
+    /// Test case that only passes if the person running it is signed into Steam as Alduris
+    /// </summary>
     internal class TestCheck : IUploadCheck
     {
-        public string DisplayText => "TEST";
+        public string Name => "TEST";
 
         public bool IsHiddenCheck => false;
 
