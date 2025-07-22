@@ -34,7 +34,7 @@ internal sealed class Plugin : BaseUnityPlugin
 
             On.Menu.Remix.InternalOI_Stats.ShowDialogWorkshopUpload += InternalOI_Stats_ShowDialogWorkshopUpload;
 
-            BWUSteamManager.Initialize();
+            // BWUSteamManager.Initialize();
         }
         catch (Exception e)
         {

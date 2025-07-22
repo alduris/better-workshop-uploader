@@ -41,6 +41,7 @@ namespace BetterWorkshopUploader.Checks
         {
             Dictionary<string, string> modMap = ModManager.ActiveMods.ToDictionary(x => x.id, y => y.name);
             mod.requirementsNames = [.. mod.requirements.Select(x => modMap[x])];
+            mod.SaveModinfo();
         }
     }
 }

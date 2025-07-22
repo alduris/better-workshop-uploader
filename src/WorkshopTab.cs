@@ -47,11 +47,10 @@ namespace BetterWorkshopUploader
             // Create checks
             checks = [
                 new SteamRunningCheck(),
-                new SteamEULACheck(),
+                // new SteamEULACheck(),
                 new ThumbnailAspectRatioCheck(),
                 new ThumbnailFileSizeCheck(),
                 new ModinfoExistCheck(),
-                new ModVersionCheck(),
                 new ModRequirementsCheck(),
                 ];
 
@@ -79,7 +78,7 @@ namespace BetterWorkshopUploader
                 sbox_tags = new OpScrollBox(new Vector2(10f, 10f), new Vector2(280f, 410f), 0f, false, false, true),
 
                 // Checks
-                sbox_checks = new OpScrollBox(new Vector2(310f, 100f), new Vector2(280f, 460f), 0f, false, false, true),
+                sbox_checks = new OpScrollBox(new Vector2(310f, 100f), new Vector2(280f, 460f), 0f, false, false, false),
 
                 // Upload section
                 // force workshop id
@@ -96,7 +95,8 @@ namespace BetterWorkshopUploader
         {
             modWatcher?.Dispose();
             activeMod = mod;
-            activeData = new BWUWorkshopData(activeMod);
+            activeData = BWUWorkshopData.FromMod(activeMod);
+            activeData.Save();
 
             // Fill in mod info
             label_name.text = Translate(mod.name); // only this needs to be translated
@@ -127,7 +127,19 @@ namespace BetterWorkshopUploader
 
         public void Update()
         {
-            //
+            // Secret bump version functionality
+            if (label_version.MouseOver && Input.GetMouseButtonDown(0))
+            {
+                var version = new Version(activeMod.version);
+                version = new Version(version.Major, version.Minor, version.Build + 1);
+                activeMod.version = version.ToString();
+                activeMod.SaveModinfo();
+
+                activeData.Version = activeMod.version;
+                activeData.Save();
+
+                label_version.text = version.ToString();
+            }
         }
 
         private void UpdateTags()
@@ -154,8 +166,10 @@ namespace BetterWorkshopUploader
                 {
                     if (v != o)
                     {
-#warning Implement!
-                        throw new NotImplementedException("Tag toggle not implemented!");
+                        activeData.Tags.Add(tag);
+                        activeMod.tags = [.. activeData.Tags];
+                        activeData.Save();
+                        activeMod.SaveModinfo();
                     }
                 };
 
@@ -172,11 +186,11 @@ namespace BetterWorkshopUploader
 
                 button.OnClick += (_) =>
                 {
-                    var list = activeMod.tags.ToList();
-                    list.Remove(tag);
-                    activeMod.tags = [.. list];
-
                     activeData.Tags.Remove(tag);
+                    activeMod.tags = [.. activeData.Tags];
+                    activeData.Save();
+                    activeMod.SaveModinfo();
+                    UpdateTags();
                 };
 
                 sbox_tags.AddItems(button, label);
@@ -191,14 +205,20 @@ namespace BetterWorkshopUploader
             {
                 if (addTextbox.value != null && addTextbox.value.Length > 0)
                 {
-#warning Implement!
-                    if (DefaultTags.Contains(addTextbox.value, StringComparer.OrdinalIgnoreCase))
+                    // Check that it isn't already added
+                    if (!activeData.Tags.Any(x => x.Equals(addTextbox.value, StringComparison.OrdinalIgnoreCase)))
                     {
-                        throw new NotImplementedException("Default tag text toggle not implemented!");
-                    }
-                    else
-                    {
-                        throw new NotImplementedException("Custom tag adding not implemented");
+                        string tagToAdd = addTextbox.value;
+                        if (DefaultTags.Contains(addTextbox.value, StringComparer.OrdinalIgnoreCase))
+                        {
+                            // If it's a default tag, change it to match the case
+                            tagToAdd = DefaultTags[DefaultTags.FindIndex(x => x.Equals(tagToAdd, StringComparison.OrdinalIgnoreCase))];
+                        }
+                        activeData.Tags.Add(tagToAdd);
+                        activeMod.tags = [.. activeData.Tags];
+                        activeData.Save();
+                        activeMod.SaveModinfo();
+                        UpdateTags();
                     }
                     addTextbox.value = "";
                 }
@@ -222,7 +242,7 @@ namespace BetterWorkshopUploader
             sbox_checks.SetContentSize(0f);
 
             // Run checks
-            float boxWidth = sbox_checks.size.x - 30f; // 20f for scrollbar + 10f margin
+            float boxWidth = sbox_checks.size.x - 10f;
             float y = sbox_checks.size.y - 40f; // 30f for height of label + 10f margin
             sbox_checks.AddItems(new OpLabel(0f, y, "CHECKS", true));
             y -= 6f;
@@ -234,7 +254,7 @@ namespace BetterWorkshopUploader
                 {
                     // Setup
                     var action = check as IUploadCheckWithAction;
-                    float height = action is not null && action.CanRunAction(activeMod, activeData, result) ? 30f : 20f;
+                    float height = action is not null && action.CanRunAction(activeMod, activeData, result) ? 36f : 24f;
                     float buttonWidth = action is not null ? Mathf.Max(24f, LabelTest.GetWidth(action.ActionText, false) + 9f) : 0f;
                     y -= height;
 
@@ -262,9 +282,9 @@ namespace BetterWorkshopUploader
 
                     sbox_checks.AddItems(label_checkName, label_checkResult);
 
-                    if (action is not null)
+                    if (action is not null && action.CanRunAction(activeMod, activeData, result))
                     {
-                        var button = new OpSimpleButton(new Vector2(boxWidth - buttonWidth, y + 3f), new Vector2(buttonWidth, 24f), action.ActionText);
+                        var button = new OpSimpleButton(new Vector2(boxWidth - buttonWidth, y + height / 2f - 12f), new Vector2(buttonWidth, 24f), action.ActionText);
                         button.OnClick += (_) =>
                         {
                             action.RunAction(activeMod, activeData, result);

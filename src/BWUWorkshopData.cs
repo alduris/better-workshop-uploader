@@ -1,55 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace BetterWorkshopUploader
 {
     public class BWUWorkshopData
     {
-        internal readonly string baseFolder;
+        [JsonIgnore]
+        internal string baseFolder;
 
         public string Name;
         public string ID;
         public string Version;
-        public long WorkshopID;
+        public long WorkshopID = 0L;
         public string LatestGameVersion;
         public bool UpdateDescription;
-        public List<string> Tags;
-        internal long LastUpdate;
+        public HashSet<string> Tags;
+        internal long LastUpdate = Plugin.sessionId;
 
-        internal bool AdaptedFromVigaro;
+        [JsonIgnore]
+        public bool FromCurrentSession => LastUpdate == Plugin.sessionId;
 
-        public BWUWorkshopData(ModManager.Mod mod)
+        private BWUWorkshopData() { }
+
+        private void UpdateData(ModManager.Mod mod)
         {
             // Fill in basic information if possible
             try
             {
                 baseFolder = mod.basePath;
-                Dictionary<string, object> data = [];
-                var path = Path.Combine(mod.basePath, "bwu.json");
-                if (File.Exists(path))
-                    data = (Dictionary<string, object>)Json.Deserialize(File.ReadAllText(path));
 
-                Name = TryGetValue(nameof(Name), mod.name);
-                ID = TryGetValue(nameof(ID), mod.id);
-                Version = TryGetValue(nameof(Version), mod.version);
-                WorkshopID = TryGetValue(nameof(WorkshopID), -1L);
-                LatestGameVersion = TryGetValue(nameof(LatestGameVersion), mod.targetGameVersion ?? RainWorld.GAME_VERSION_STRING);
-                UpdateDescription = TryGetValue(nameof(UpdateDescription), false);
-                Tags = TryGetList(nameof(Tags), mod.tags?.ToList() ?? []);
-                LastUpdate = TryGetValue(nameof(LastUpdate), Plugin.sessionId);
-
-                AdaptedFromVigaro = TryGetValue(nameof(AdaptedFromVigaro), false);
-
-                T TryGetValue<T>(string name, T defaultValue)
-                {
-                    return data.TryGetValue(name, out object boxedValue) && boxedValue is T parsedValue ? parsedValue : defaultValue;
-                }
-                List<T> TryGetList<T>(string name, List<T> defaultValue)
-                {
-                    return TryGetValue<List<object>>(name, null)?.Cast<T>().ToList() ?? defaultValue;
-                }
+                Name ??= mod.name;
+                ID = mod.id;
+                Version = mod.version;
+                Tags ??= [.. mod.tags];
+                LatestGameVersion = RainWorld.GAME_VERSION_STRING;
             }
             catch (Exception e)
             {
@@ -58,7 +45,7 @@ namespace BetterWorkshopUploader
             }
         }
 
-        internal BWUWorkshopData(VigaroWorkshopData dataToAdapt)
+        private BWUWorkshopData(VigaroWorkshopData dataToAdapt)
         {
             baseFolder = dataToAdapt.baseFolder;
 
@@ -70,26 +57,36 @@ namespace BetterWorkshopUploader
             UpdateDescription = !dataToAdapt.UploadFilesOnly;
             Tags = [.. dataToAdapt.Tags];
             LastUpdate = Plugin.sessionId;
-            AdaptedFromVigaro = true;
         }
 
-        public bool FromCurrentSession => LastUpdate == Plugin.sessionId;
+        internal static string DataPath(string basePath) => Path.Combine(basePath, "bwu.json");
+        internal static string DataPath(ModManager.Mod mod) => DataPath(mod.basePath);
+
+        public static BWUWorkshopData FromMod(ModManager.Mod mod)
+        {
+            BWUWorkshopData data;
+            if (!File.Exists(DataPath(mod)) && File.Exists(VigaroWorkshopData.DataPath(mod)))
+            {
+                data = new BWUWorkshopData(VigaroWorkshopData.FromMod(mod));
+            }
+            else if (File.Exists(DataPath(mod)))
+            {
+                data = JsonConvert.DeserializeObject<BWUWorkshopData>(File.ReadAllText(DataPath(mod)));
+            }
+            else
+            {
+                data = new BWUWorkshopData();
+            }
+            data.UpdateData(mod);
+            return data;
+        }
 
         public void Save()
         {
-            Dictionary<string, object> data = [];
-            data[nameof(Name)] = Name;
-            data[nameof(ID)] = ID;
-            data[nameof(WorkshopID)] = WorkshopID;
-            data[nameof(LatestGameVersion)] = LatestGameVersion;
-            data[nameof(UpdateDescription)] = UpdateDescription;
-            data[nameof(Tags)] = Tags;
-            data[nameof(LastUpdate)] = LastUpdate;
-
-            if (AdaptedFromVigaro)
-                data[nameof(AdaptedFromVigaro)] = AdaptedFromVigaro;
-
-            throw new NotImplementedException("JSON saving is not implemented yet!");
+            LastUpdate = Plugin.sessionId;
+            JObject json = JObject.FromObject(this);
+            File.WriteAllText(DataPath(baseFolder), json.ToString(Formatting.Indented));
+            // File.WriteAllText(DataPath(baseFolder), JsonConvert.SerializeObject(this, Formatting.Indented));
         }
     }
 }

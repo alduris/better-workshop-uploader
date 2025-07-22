@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace BetterWorkshopUploader
 {
@@ -10,7 +11,9 @@ namespace BetterWorkshopUploader
     /// </summary>
     internal class VigaroWorkshopData
     {
-        internal readonly string baseFolder;
+        [JsonIgnore]
+        internal string baseFolder;
+
         public string Title;
         public string Description;
         public string ID;
@@ -21,36 +24,50 @@ namespace BetterWorkshopUploader
         public string Authors;
         public string Visibility;
         public List<string> Tags;
-        public long WorkshopID;
-        public bool UploadFilesOnly;
-        public bool UploadThumbnail;
+        public long WorkshopID = 0L;
+        public bool UploadFilesOnly = false;
+        public bool UploadThumbnail = true;
 
-        public VigaroWorkshopData(ModManager.Mod mod)
+        private VigaroWorkshopData() { }
+
+        private void UpdateData(ModManager.Mod mod)
         {
             try
             {
-                var data = (Dictionary<string, object>)Json.Deserialize(File.ReadAllText(Path.Combine(mod.basePath, "workshopdata.json")));
                 baseFolder = mod.basePath;
 
-                if (data.ContainsKey(nameof(Title)))             Title             = (string)data[nameof(Title)]             ?? mod.name              ?? "UNKNOWN";
-                if (data.ContainsKey(nameof(Description)))       Description       = (string)data[nameof(Description)]       ?? mod.description       ?? "UNKNOWN";
-                if (data.ContainsKey(nameof(ID)))                ID                = (string)data[nameof(ID)]                ?? mod.id                ?? "UNKNOWN";
-                if (data.ContainsKey(nameof(Version)))           Version           = (string)data[nameof(Version)]           ?? mod.version           ?? "0.0";
-                if (data.ContainsKey(nameof(TargetGameVersion))) TargetGameVersion = (string)data[nameof(TargetGameVersion)] ?? mod.targetGameVersion ?? RainWorld.GAME_VERSION_STRING;
-                if (data.ContainsKey(nameof(Requirements)))      Requirements      = (string)data[nameof(Requirements)]      ?? string.Join(", ", mod.requirements);
-                if (data.ContainsKey(nameof(RequirementNames)))  RequirementNames  = (string)data[nameof(RequirementNames)]  ?? string.Join(", ", mod.requirementsNames);
-                if (data.ContainsKey(nameof(Authors)))           Authors           = (string)data[nameof(Authors)]           ?? mod.authors ?? "";
-                if (data.ContainsKey(nameof(Visibility)))        Visibility        = (string)data[nameof(Visibility)]        ?? "Unlisted";
-                if (data.ContainsKey(nameof(Tags)))              Tags              = ((List<object>)data[nameof(Tags)])?.Cast<string>().Where(x => x != null).ToList() ?? [];
-                if (data.ContainsKey(nameof(WorkshopID)))        WorkshopID        = data[nameof(WorkshopID)] is long l ? l : 0;
-                if (data.ContainsKey(nameof(UploadFilesOnly)))   UploadFilesOnly   = data[nameof(UploadFilesOnly)] is bool b1 && b1;
-                if (data.ContainsKey(nameof(UploadThumbnail)))   UploadThumbnail   = data[nameof(UploadThumbnail)] is bool b2 && b2;
+                Title ??= mod.name ?? "UNKNOWN";
+                Description ??= mod.description ?? "UNKNOWN";
+                ID ??= mod.id ?? "UNKNOWN";
+                Version ??= mod.version ?? "0.0";
+                TargetGameVersion ??= RainWorld.GAME_VERSION_STRING;
+                Requirements ??= string.Join(", ", mod.requirements);
+                RequirementNames ??= string.Join(", ", mod.requirementsNames);
+                Authors ??= mod.authors ?? "";
+                Visibility ??= "Unlisted";
+                Tags ??= mod.tags?.ToList() ?? [];
             }
             catch (Exception e)
             {
                 Plugin.Logger.LogError(e);
                 throw;
             }
+        }
+
+        internal static string DataPath(ModManager.Mod mod) => Path.Combine(mod.basePath, "workshopdata.json");
+        public static VigaroWorkshopData FromMod(ModManager.Mod mod)
+        {
+            VigaroWorkshopData data;
+            if (File.Exists(DataPath(mod)))
+            {
+                data = JsonConvert.DeserializeObject<VigaroWorkshopData>(File.ReadAllText(DataPath(mod)));
+            }
+            else
+            {
+                data = new VigaroWorkshopData();
+            }
+            data.UpdateData(mod);
+            return data;
         }
     }
 }

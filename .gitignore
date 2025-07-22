@@ -399,4 +399,4 @@ FodyWeavers.xsd
 
 # Ignore mod output
 mod/plugins/
-mod/newest/plugins/
+!mod/plugins/Newtonsoft.Json.dll
