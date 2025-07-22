@@ -398,5 +398,4 @@ FodyWeavers.xsd
 *.sln.iml
 
 # Ignore mod output
-mod/plugins/
-!mod/plugins/Newtonsoft.Json.dll
+mod/plugins/BetterWorkshopUploader.*
