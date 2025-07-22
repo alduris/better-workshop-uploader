@@ -10,7 +10,7 @@
 
         private int state = UnityEngine.Random.Range(0, 3);
 
-        public bool? RunCheck(ModManager.Mod mod)
+        public bool? RunCheck(ModManager.Mod mod, BWUWorkshopData data)
         {
             // Depends on the state
             return state switch
@@ -23,9 +23,9 @@
 
         public string ActionText { get; } = "SWITCH";
 
-        public bool CanRunAction(ModManager.Mod mod, bool? result) => true;
+        public bool CanRunAction(ModManager.Mod mod, BWUWorkshopData data, bool? result) => true;
 
-        public void RunAction(ModManager.Mod mod, bool? result)
+        public void RunAction(ModManager.Mod mod, BWUWorkshopData data, bool? result)
         {
             // Switches what the check will return
             state = (state + 1) % 3;

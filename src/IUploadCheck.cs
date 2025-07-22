@@ -19,7 +19,8 @@
         /// Runs the check on the given mod
         /// </summary>
         /// <param name="mod">The mod to check</param>
+        /// <param name="data">The workshop data file</param>
         /// <returns>Pass or fail. Returning null means the check is not applicable.</returns>
-        public bool? RunCheck(ModManager.Mod mod);
+        public bool? RunCheck(ModManager.Mod mod, BWUWorkshopData data);
     }
 }

@@ -9,7 +9,7 @@
 
         public bool IsHiddenCheck => false;
 
-        public bool? RunCheck(ModManager.Mod mod)
+        public bool? RunCheck(ModManager.Mod mod, BWUWorkshopData data)
         {
             // Checks if the user is Alduris
             return RainWorldSteamManager.ownerUserID == 76561199088708941LU;

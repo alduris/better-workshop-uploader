@@ -16,6 +16,7 @@ internal sealed class Plugin : BaseUnityPlugin
 {
     public static new ManualLogSource Logger;
     public static int workshopTabIndex = -1;
+    public static readonly long sessionId = DateTime.Now.Ticks;
 
     public void OnEnable()
     {
@@ -32,6 +33,8 @@ internal sealed class Plugin : BaseUnityPlugin
             On.Menu.Remix.InternalOI_Stats.Update += InternalOI_Stats_Update;
 
             On.Menu.Remix.InternalOI_Stats.ShowDialogWorkshopUpload += InternalOI_Stats_ShowDialogWorkshopUpload;
+
+            BWUSteamManager.Initialize();
         }
         catch (Exception e)
         {

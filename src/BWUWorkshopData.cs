@@ -5,18 +5,20 @@ using System.Linq;
 
 namespace BetterWorkshopUploader
 {
-    internal class BWUWorkshopData
+    public class BWUWorkshopData
     {
         internal readonly string baseFolder;
 
         public string Name;
         public string ID;
+        public string Version;
         public long WorkshopID;
         public string LatestGameVersion;
         public bool UpdateDescription;
         public List<string> Tags;
+        internal long LastUpdate;
 
-        public bool AdaptedFromVigaro;
+        internal bool AdaptedFromVigaro;
 
         public BWUWorkshopData(ModManager.Mod mod)
         {
@@ -31,10 +33,12 @@ namespace BetterWorkshopUploader
 
                 Name = TryGetValue(nameof(Name), mod.name);
                 ID = TryGetValue(nameof(ID), mod.id);
+                Version = TryGetValue(nameof(Version), mod.version);
                 WorkshopID = TryGetValue(nameof(WorkshopID), -1L);
                 LatestGameVersion = TryGetValue(nameof(LatestGameVersion), mod.targetGameVersion ?? RainWorld.GAME_VERSION_STRING);
                 UpdateDescription = TryGetValue(nameof(UpdateDescription), false);
                 Tags = TryGetList(nameof(Tags), mod.tags?.ToList() ?? []);
+                LastUpdate = TryGetValue(nameof(LastUpdate), Plugin.sessionId);
 
                 AdaptedFromVigaro = TryGetValue(nameof(AdaptedFromVigaro), false);
 
@@ -54,18 +58,22 @@ namespace BetterWorkshopUploader
             }
         }
 
-        public BWUWorkshopData(VigaroWorkshopData dataToAdapt)
+        internal BWUWorkshopData(VigaroWorkshopData dataToAdapt)
         {
             baseFolder = dataToAdapt.baseFolder;
 
             Name = dataToAdapt.Title;
             ID = dataToAdapt.ID;
+            Version = dataToAdapt.Version;
             WorkshopID = dataToAdapt.WorkshopID;
             LatestGameVersion = dataToAdapt.TargetGameVersion;
             UpdateDescription = !dataToAdapt.UploadFilesOnly;
             Tags = [.. dataToAdapt.Tags];
+            LastUpdate = Plugin.sessionId;
             AdaptedFromVigaro = true;
         }
+
+        public bool FromCurrentSession => LastUpdate == Plugin.sessionId;
 
         public void Save()
         {
@@ -76,6 +84,7 @@ namespace BetterWorkshopUploader
             data[nameof(LatestGameVersion)] = LatestGameVersion;
             data[nameof(UpdateDescription)] = UpdateDescription;
             data[nameof(Tags)] = Tags;
+            data[nameof(LastUpdate)] = LastUpdate;
 
             if (AdaptedFromVigaro)
                 data[nameof(AdaptedFromVigaro)] = AdaptedFromVigaro;

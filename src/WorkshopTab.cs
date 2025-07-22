@@ -33,6 +33,7 @@ namespace BetterWorkshopUploader
             ];
 
         private ModManager.Mod activeMod;
+        private BWUWorkshopData activeData;
         private List<IUploadCheck> checks;
 
         private OpLabel label_name, label_id, label_version;
@@ -45,8 +46,13 @@ namespace BetterWorkshopUploader
         {
             // Create checks
             checks = [
-                new TestCheck(),
-                new TestActionCheck(),
+                new SteamRunningCheck(),
+                new SteamEULACheck(),
+                new ThumbnailAspectRatioCheck(),
+                new ThumbnailFileSizeCheck(),
+                new ModinfoExistCheck(),
+                new ModVersionCheck(),
+                new ModRequirementsCheck(),
                 ];
 
             // Check for stuff we want to know about
@@ -60,9 +66,9 @@ namespace BetterWorkshopUploader
                 titleLabel = new OpLabel(new Vector2(10f, 570f), new Vector2(580f, 30f), "WORKSHOP UPLOADER", FLabelAlignment.Center, true),
 
                 // Lines
-                new OpImage(new Vector2(0f, 559f), "pixel") { scale = new Vector2(600f, 2f), color = MenuColorEffect.rgbMediumGrey },   // top border
-                new OpImage(new Vector2(299f, 0f), "pixel") { scale = new Vector2(2f, 550f), color = MenuColorEffect.rgbMediumGrey }, // middle vertical border
-                new OpImage(new Vector2(306f, 90f), "pixel") { scale = new Vector2(280f, 2f), color = MenuColorEffect.rgbMediumGrey },  // upload border
+                new OpImage(new Vector2(0f, 559f), "pixel") { scale = new Vector2(600f, 2f), color = MenuColorEffect.rgbMediumGrey },  // top border
+                new OpImage(new Vector2(299f, 0f), "pixel") { scale = new Vector2(2f, 550f), color = MenuColorEffect.rgbMediumGrey },  // middle vertical border
+                new OpImage(new Vector2(306f, 90f), "pixel") { scale = new Vector2(280f, 2f), color = MenuColorEffect.rgbMediumGrey }, // upload border
 
                 // Metadata verification
                 label_name = new OpLabel(new Vector2(10f, 520f), new Vector2(280f, 30f), "NAME HERE") { verticalAlignment = LabelVAlignment.Center },
@@ -82,12 +88,15 @@ namespace BetterWorkshopUploader
                 ]);
 
             titleLabel.label.shader = Custom.rainWorld.Shaders["MenuText"]; // shiny appearance
+
+            BWUSteamManager.ReceivedNewData += BWUSteamManager_ReceivedNewData;
         }
 
         public void FillInModInfo(ModManager.Mod mod)
         {
-            activeMod = mod;
             modWatcher?.Dispose();
+            activeMod = mod;
+            activeData = new BWUWorkshopData(activeMod);
 
             // Fill in mod info
             label_name.text = Translate(mod.name); // only this needs to be translated
@@ -163,8 +172,11 @@ namespace BetterWorkshopUploader
 
                 button.OnClick += (_) =>
                 {
-#warning Implement!
-                    throw new NotImplementedException("Tag remove not implemented!");
+                    var list = activeMod.tags.ToList();
+                    list.Remove(tag);
+                    activeMod.tags = [.. list];
+
+                    activeData.Tags.Remove(tag);
                 };
 
                 sbox_tags.AddItems(button, label);
@@ -216,13 +228,13 @@ namespace BetterWorkshopUploader
             y -= 6f;
             foreach (var check in checks)
             {
-                bool? result = check.RunCheck(activeMod);
+                bool? result = check.RunCheck(activeMod, activeData);
 
                 if (result == false || !check.IsHiddenCheck)
                 {
                     // Setup
                     var action = check as IUploadCheckWithAction;
-                    float height = action is not null && action.CanRunAction(activeMod, result) ? 30f : 20f;
+                    float height = action is not null && action.CanRunAction(activeMod, activeData, result) ? 30f : 20f;
                     float buttonWidth = action is not null ? Mathf.Max(24f, LabelTest.GetWidth(action.ActionText, false) + 9f) : 0f;
                     y -= height;
 
@@ -255,7 +267,7 @@ namespace BetterWorkshopUploader
                         var button = new OpSimpleButton(new Vector2(boxWidth - buttonWidth, y + 3f), new Vector2(buttonWidth, 24f), action.ActionText);
                         button.OnClick += (_) =>
                         {
-                            action.RunAction(activeMod, result);
+                            action.RunAction(activeMod, activeData, result);
                             RunChecks();
                         };
                         sbox_checks.AddItems(button);
@@ -303,6 +315,11 @@ namespace BetterWorkshopUploader
         private void ModWatcher_Error(object sender, ErrorEventArgs e)
         {
             Plugin.Logger.LogError(e.GetException());
+        }
+
+        private void BWUSteamManager_ReceivedNewData()
+        {
+            RunChecks();
         }
     }
 }
