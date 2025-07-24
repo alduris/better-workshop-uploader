@@ -208,12 +208,14 @@ internal sealed class Plugin : BaseUnityPlugin
             try
             {
                 ulong id = workshopTabInstance.DesiredID;
-                if (id >= 2920438669UL) // this is UwU mod by Henpemaz, which is the first publicly uploaded mod to the Workshop.
+                Logger.LogDebug("WORKSHOP ID: " + id);
+                if (id > 0)
                 {
                     steamManager.lastQueryOwners.Clear();
                     steamManager.lastQueryFiles.Clear();
                     steamManager.lastQueryOwners.Add(RainWorldSteamManager.ownerUserID);
                     steamManager.lastQueryFiles.Add(new(id));
+                    steamManager.lastQueryCount = 1;
                 }
             }
             catch { }

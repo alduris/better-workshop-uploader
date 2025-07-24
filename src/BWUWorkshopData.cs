@@ -17,6 +17,7 @@ namespace BetterWorkshopUploader
         public ulong WorkshopID = 0L;
         public string LatestGameVersion;
         public bool UpdateDescription;
+        public bool MarkAsPublic = true;
         public HashSet<string> Tags;
         internal long LastUpdate = Plugin.sessionId;
 
@@ -55,6 +56,7 @@ namespace BetterWorkshopUploader
             WorkshopID = dataToAdapt.WorkshopID < 0 ? 0L : (ulong)dataToAdapt.WorkshopID;
             LatestGameVersion = dataToAdapt.TargetGameVersion;
             UpdateDescription = !dataToAdapt.UploadFilesOnly;
+            MarkAsPublic = dataToAdapt.Visibility == "Public";
             Tags = [.. dataToAdapt.Tags];
             LastUpdate = Plugin.sessionId;
         }

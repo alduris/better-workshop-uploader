@@ -45,9 +45,9 @@ namespace BetterWorkshopUploader
 
         private FileSystemWatcher modWatcher;
 
-        internal ulong DesiredID => input_id.GetValueULong();
-        internal bool UpdateDescription => cbox_update.GetValueBool();
-        internal bool MarkAsPublic => cbox_public.GetValueBool();
+        internal ulong DesiredID => activeData.WorkshopID;
+        internal bool UpdateDescription => activeData.UpdateDescription;
+        internal bool MarkAsPublic => activeData.MarkAsPublic;
         internal ulong SetNewWorkshopID
         {
             set
@@ -103,6 +103,7 @@ namespace BetterWorkshopUploader
             titleLabel.label.shader = Custom.rainWorld.Shaders["MenuText"]; // shiny appearance
 
             cbox_update.OnChange += UpdateCheckbox_OnChange;
+            cbox_public.OnChange += PublicCheckbox_OnChange;
 
             button_upload.OnPressDone += UploadButton_OnPressDone;
         }
@@ -112,7 +113,6 @@ namespace BetterWorkshopUploader
             modWatcher?.Dispose();
             activeMod = mod;
             activeData = BWUWorkshopData.FromMod(activeMod);
-            activeData.Save();
 
             // Fill in mod info
             label_name.text = Translate(mod.name); // only this needs to be translated
@@ -121,9 +121,22 @@ namespace BetterWorkshopUploader
             UpdateTags();
 
             input_id.value = activeData.WorkshopID.ToString();
+            if (mod.workshopId > 0 && activeData.WorkshopID == 0)
+            {
+                activeData.WorkshopID = mod.workshopId;
+                input_id.value = activeData.WorkshopID.ToString();
+            }
+            else
+            {
+                mod.workshopId = activeData.WorkshopID;
+            }
+
+            cbox_update.SetValueBool(activeData.UpdateDescription);
+            cbox_public.SetValueBool(activeData.MarkAsPublic);
 
             // Other stuff
             RunChecks();
+            activeData.Save();
 
             // Watch the mod's files for updates
             modWatcher = new FileSystemWatcher(mod.basePath);
@@ -324,6 +337,12 @@ namespace BetterWorkshopUploader
         private void UpdateCheckbox_OnChange()
         {
             activeData.UpdateDescription = cbox_update.GetValueBool();
+            activeData.Save();
+        }
+
+        private void PublicCheckbox_OnChange()
+        {
+            activeData.MarkAsPublic = cbox_public.GetValueBool();
             activeData.Save();
         }
 

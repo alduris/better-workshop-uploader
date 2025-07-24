@@ -5,6 +5,7 @@
   "WorkshopID": 3532837046,
   "LatestGameVersion": "v1.10.4",
   "UpdateDescription": false,
+  "MarkAsPublic": false,
   "Tags": [
     "Tools",
     "Accessibility",
