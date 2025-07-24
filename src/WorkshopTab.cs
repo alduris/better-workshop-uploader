@@ -39,13 +39,14 @@ namespace BetterWorkshopUploader
 
         private OpLabel label_name, label_id, label_version;
         private OpScrollBox sbox_tags, sbox_checks;
-        private OpCheckBox cbox_update, cbox_public;
+        private OpCheckBox cbox_updatedescr, cbox_updatetitle, cbox_public;
         private OpHoldButton button_upload;
         private OpTextBox input_id;
 
         private FileSystemWatcher modWatcher;
 
         internal ulong DesiredID => activeData.WorkshopID;
+        internal bool UpdateTitle => activeData.UpdateTitle;
         internal bool UpdateDescription => activeData.UpdateDescription;
         internal bool MarkAsPublic => activeData.MarkAsPublic;
         internal ulong SetNewWorkshopID
@@ -79,30 +80,33 @@ namespace BetterWorkshopUploader
                 // Lines
                 new OpImage(new Vector2(0f, 559f), "pixel") { scale = new Vector2(600f, 2f), color = MenuColorEffect.rgbMediumGrey },   // top border
                 new OpImage(new Vector2(299f, 0f), "pixel") { scale = new Vector2(2f, 550f), color = MenuColorEffect.rgbMediumGrey },   // middle vertical border
-                new OpImage(new Vector2(306f, 109f), "pixel") { scale = new Vector2(280f, 2f), color = MenuColorEffect.rgbMediumGrey }, // upload border
+                new OpImage(new Vector2(306f, 169f), "pixel") { scale = new Vector2(280f, 2f), color = MenuColorEffect.rgbMediumGrey }, // upload border
 
                 // Metadata verification
                 label_name = new OpLabel(new Vector2(10f, 520f), new Vector2(280f, 30f), Translate("NAME HERE")) { verticalAlignment = LabelVAlignment.Center },
                 label_id = new OpLabel(new Vector2(10f, 490f), new Vector2(280f, 30f), Translate("ID HERE")) { verticalAlignment = LabelVAlignment.Center },
                 label_version = new OpLabel(new Vector2(10f, 460f), new Vector2(280f, 30f), Translate("VERSION HERE")) { verticalAlignment = LabelVAlignment.Center },
-                cbox_update = new OpCheckBox(new Configurable<bool>(false), new Vector2(10f, 433f)),
-                new OpLabel(new Vector2(40f, 430f), new Vector2(250f, 30f), Translate("Update workshop description"), FLabelAlignment.Left) { verticalAlignment = LabelVAlignment.Center },
-                sbox_tags = new OpScrollBox(new Vector2(10f, 10f), new Vector2(280f, 410f), 0f, false, false, true),
+                sbox_tags = new OpScrollBox(new Vector2(10f, 10f), new Vector2(280f, 440f), 0f, false, false, true),
 
                 // Checks
                 sbox_checks = new OpScrollBox(new Vector2(310f, 100f), new Vector2(280f, 460f), 0f, false, false, false),
 
                 // Upload section
-                new OpLabel(new Vector2(310f, 70f), new Vector2(0f, 30f), Translate("Workshop ID:"), FLabelAlignment.Left, false),
-                input_id = new OpTextBox(new Configurable<string>("0"), new Vector2(430f, 73f), 160f) { accept = Plugin.ACCEPT_ULONG },
+                new OpLabel(new Vector2(310f, 130f), new Vector2(0f, 30f), Translate("Workshop ID:"), FLabelAlignment.Left, false),
+                input_id = new OpTextBox(new Configurable<string>("0"), new Vector2(430f, 133f), 160f) { accept = Plugin.ACCEPT_ULONG },
+                new OpLabel(new Vector2(310f, 100f), new Vector2(0f, 30f), Translate("Update workshop title"), FLabelAlignment.Left) { verticalAlignment = LabelVAlignment.Center },
+                cbox_updatetitle = new OpCheckBox(new Configurable<bool>(false), new Vector2(564f, 103f)),
+                new OpLabel(new Vector2(310f, 70f), new Vector2(0f, 30f), Translate("Update workshop description"), FLabelAlignment.Left) { verticalAlignment = LabelVAlignment.Center },
+                cbox_updatedescr = new OpCheckBox(new Configurable<bool>(false), new Vector2(564f, 73f)),
                 new OpLabel(new Vector2(310f, 40f), new Vector2(0f, 30f), Translate("Mark as public:"), FLabelAlignment.Left) { verticalAlignment = LabelVAlignment.Center },
                 cbox_public = new OpCheckBox(new Configurable<bool>(true), new Vector2(564f, 43f)),
-                button_upload = new OpHoldButton(new Vector2(400f, 10f), new Vector2(100f, 24f), Translate("UPLOAD"))
+                button_upload = new OpHoldButton(new Vector2(400f, 10f), new Vector2(100f, 24f), Translate("UPLOAD"), 40)
                 ]);
 
             titleLabel.label.shader = Custom.rainWorld.Shaders["MenuText"]; // shiny appearance
 
-            cbox_update.OnChange += UpdateCheckbox_OnChange;
+            cbox_updatetitle.OnChange += UpdateTitleCheckbox_OnChange;
+            cbox_updatedescr.OnChange += UpdateDescriptionCheckbox_OnChange;
             cbox_public.OnChange += PublicCheckbox_OnChange;
             input_id.OnChange += IdInput_OnChange;
 
@@ -120,6 +124,7 @@ namespace BetterWorkshopUploader
             label_id.text = mod.id;
             label_version.text = mod.version;
             UpdateTags();
+            sbox_tags.ScrollToTop();
 
             input_id.value = activeData.WorkshopID.ToString();
             if (mod.workshopId > 0 && activeData.WorkshopID == 0)
@@ -132,7 +137,8 @@ namespace BetterWorkshopUploader
                 mod.workshopId = activeData.WorkshopID;
             }
 
-            cbox_update.SetValueBool(activeData.UpdateDescription);
+            cbox_updatetitle.SetValueBool(activeData.UpdateTitle);
+            cbox_updatedescr.SetValueBool(activeData.UpdateDescription);
             cbox_public.SetValueBool(activeData.MarkAsPublic);
 
             // Other stuff
@@ -286,8 +292,9 @@ namespace BetterWorkshopUploader
                 {
                     // Setup
                     var action = check as IUploadCheckWithAction;
-                    float height = action is not null && action.CanRunAction(activeMod, activeData, result) ? 36f : 24f;
-                    float buttonWidth = action is not null ? Mathf.Max(24f, LabelTest.GetWidth(action.ActionText, false) + 9f) : 0f;
+                    bool canRunAction = action?.CanRunAction(activeMod, activeData, result) ?? false;
+                    float height = action is not null && canRunAction ? 36f : 24f;
+                    float buttonWidth = action is not null && canRunAction ? Mathf.Max(24f, LabelTest.GetWidth(action.ActionText, false) + 9f) : 0f;
                     y -= height;
 
                     // Create labels
@@ -314,7 +321,7 @@ namespace BetterWorkshopUploader
 
                     sbox_checks.AddItems(label_checkName, label_checkResult);
 
-                    if (action is not null && action.CanRunAction(activeMod, activeData, result))
+                    if (action is not null && canRunAction)
                     {
                         var button = new OpSimpleButton(new Vector2(boxWidth - buttonWidth, y + height / 2f - 12f), new Vector2(buttonWidth, 24f), action.ActionText);
                         button.OnClick += (_) =>
@@ -335,9 +342,15 @@ namespace BetterWorkshopUploader
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        private void UpdateCheckbox_OnChange()
+        private void UpdateTitleCheckbox_OnChange()
         {
-            activeData.UpdateDescription = cbox_update.GetValueBool();
+            activeData.UpdateTitle = cbox_updatetitle.GetValueBool();
+            activeData.Save();
+        }
+
+        private void UpdateDescriptionCheckbox_OnChange()
+        {
+            activeData.UpdateDescription = cbox_updatedescr.GetValueBool();
             activeData.Save();
         }
 
@@ -349,8 +362,11 @@ namespace BetterWorkshopUploader
 
         private void IdInput_OnChange()
         {
-            activeData.WorkshopID = input_id.GetValueULong();
-            activeData.Save();
+            if (input_id.GetValueULong() != activeData.WorkshopID)
+            {
+                activeData.WorkshopID = input_id.GetValueULong();
+                activeData.Save();
+            }
         }
 
         private void UploadButton_OnPressDone(UIfocusable trigger)
@@ -372,13 +388,13 @@ namespace BetterWorkshopUploader
 
         private void ModWatcher_Changed(object sender, FileSystemEventArgs e)
         {
-            if (e.Name != "bwu.json")
+            if (!e.Name.Equals(Path.GetFullPath(BWUWorkshopData.DataPath(activeMod))))
                 RunChecks();
         }
 
         private void ModWatcher_Created(object sender, FileSystemEventArgs e)
         {
-            if (e.Name != "bwu.json")
+            if (!e.Name.Equals(Path.GetFullPath(BWUWorkshopData.DataPath(activeMod))))
                 RunChecks();
         }
 

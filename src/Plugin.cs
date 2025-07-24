@@ -234,6 +234,7 @@ internal sealed class Plugin : BaseUnityPlugin
 
     private void RainWorldSteamManager_UploadWorkshopMod(ILContext il)
     {
+        ILLabel brTo;
         var c = new ILCursor(il);
 
         // Override public (since we're already doing an IL hook here)
@@ -241,13 +242,24 @@ internal sealed class Plugin : BaseUnityPlugin
         c.EmitDelegate((bool orig) => !workshopTabInstance.MarkAsPublic); // arg 2 is unlisted
         c.Emit(OpCodes.Starg, 2);
 
+        // Don't replace title if we don't want to
+        c.GotoNext(x => x.MatchCallOrCallvirt(typeof(SteamUGC).GetMethod(nameof(SteamUGC.SetItemTitle), BindingFlags.Static | BindingFlags.Public)));
+        c.GotoNext(MoveType.After, x => x.MatchPop());
+        brTo = c.MarkLabel();
+        c.Index--;
+        c.GotoPrev(MoveType.AfterLabel, x => x.MatchLdarg(0), x => x.MatchLdfld<RainWorldSteamManager>(nameof(RainWorldSteamManager.updateHandle)));
+        c.Emit(OpCodes.Ldarg_0);
+        c.EmitDelegate((RainWorldSteamManager self) => workshopTabInstance.UpdateTitle || self.lastQueryCount == 0);
+        c.Emit(OpCodes.Brfalse, brTo);
+
         // Don't replace description if we don't want to
         c.GotoNext(x => x.MatchCallOrCallvirt(typeof(SteamUGC).GetMethod(nameof(SteamUGC.SetItemDescription), BindingFlags.Static | BindingFlags.Public)));
         c.GotoNext(MoveType.After, x => x.MatchPop());
-        var brTo = c.MarkLabel();
+        brTo = c.MarkLabel();
         c.Index--;
         c.GotoPrev(MoveType.AfterLabel, x => x.MatchLdarg(0), x => x.MatchLdfld<RainWorldSteamManager>(nameof(RainWorldSteamManager.updateHandle)));
-        c.EmitDelegate(() => workshopTabInstance.UpdateDescription);
+        c.Emit(OpCodes.Ldarg_0);
+        c.EmitDelegate((RainWorldSteamManager self) => workshopTabInstance.UpdateDescription || self.lastQueryCount == 0);
         c.Emit(OpCodes.Brfalse, brTo);
     }
 }
