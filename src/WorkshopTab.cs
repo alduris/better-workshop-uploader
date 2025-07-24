@@ -120,7 +120,7 @@ namespace BetterWorkshopUploader
             label_version.text = mod.version;
             UpdateTags();
 
-            input_id.value = mod.id;
+            input_id.value = activeData.WorkshopID.ToString();
 
             // Other stuff
             RunChecks();
