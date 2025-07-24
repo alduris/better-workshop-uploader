@@ -53,6 +53,7 @@ namespace BetterWorkshopUploader
             set
             {
                 activeData.WorkshopID = value;
+                input_id.value = value.ToString();
                 activeData.Save();
             }
         }
