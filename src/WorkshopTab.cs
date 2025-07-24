@@ -104,6 +104,7 @@ namespace BetterWorkshopUploader
 
             cbox_update.OnChange += UpdateCheckbox_OnChange;
             cbox_public.OnChange += PublicCheckbox_OnChange;
+            input_id.OnChange += IdInput_OnChange;
 
             button_upload.OnPressDone += UploadButton_OnPressDone;
         }
@@ -346,6 +347,12 @@ namespace BetterWorkshopUploader
             activeData.Save();
         }
 
+        private void IdInput_OnChange()
+        {
+            activeData.WorkshopID = input_id.GetValueULong();
+            activeData.Save();
+        }
+
         private void UploadButton_OnPressDone(UIfocusable trigger)
         {
             trigger.held = false;
@@ -365,13 +372,13 @@ namespace BetterWorkshopUploader
 
         private void ModWatcher_Changed(object sender, FileSystemEventArgs e)
         {
-            if (e.Name != "bwudata.json")
+            if (e.Name != "bwu.json")
                 RunChecks();
         }
 
         private void ModWatcher_Created(object sender, FileSystemEventArgs e)
         {
-            if (e.Name != "bwudata.json")
+            if (e.Name != "bwu.json")
                 RunChecks();
         }
 
