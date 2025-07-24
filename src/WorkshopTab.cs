@@ -80,7 +80,7 @@ namespace BetterWorkshopUploader
                 // Lines
                 new OpImage(new Vector2(0f, 559f), "pixel") { scale = new Vector2(600f, 2f), color = MenuColorEffect.rgbMediumGrey },   // top border
                 new OpImage(new Vector2(299f, 0f), "pixel") { scale = new Vector2(2f, 550f), color = MenuColorEffect.rgbMediumGrey },   // middle vertical border
-                new OpImage(new Vector2(306f, 169f), "pixel") { scale = new Vector2(280f, 2f), color = MenuColorEffect.rgbMediumGrey }, // upload border
+                new OpImage(new Vector2(306f, 209f), "pixel") { scale = new Vector2(292f, 2f), color = MenuColorEffect.rgbMediumGrey }, // upload border
 
                 // Metadata verification
                 label_name = new OpLabel(new Vector2(10f, 520f), new Vector2(280f, 30f), Translate("NAME HERE")) { verticalAlignment = LabelVAlignment.Center },
@@ -89,14 +89,15 @@ namespace BetterWorkshopUploader
                 sbox_tags = new OpScrollBox(new Vector2(10f, 10f), new Vector2(280f, 440f), 0f, false, false, true),
 
                 // Checks
-                sbox_checks = new OpScrollBox(new Vector2(310f, 100f), new Vector2(280f, 460f), 0f, false, false, false),
+                sbox_checks = new OpScrollBox(new Vector2(310f, 300f), new Vector2(280f, 260f), 0f, false, false, false),
 
                 // Upload section
+                new OpLabel(new Vector2(310f, 170f), new Vector2(0f, 30f), Translate("WORKSHOP INFO"), FLabelAlignment.Left, true) {verticalAlignment = LabelVAlignment.Center },
                 new OpLabel(new Vector2(310f, 130f), new Vector2(0f, 30f), Translate("Workshop ID:"), FLabelAlignment.Left, false),
                 input_id = new OpTextBox(new Configurable<string>("0"), new Vector2(430f, 133f), 160f) { accept = Plugin.ACCEPT_ULONG },
-                new OpLabel(new Vector2(310f, 100f), new Vector2(0f, 30f), Translate("Update workshop title"), FLabelAlignment.Left) { verticalAlignment = LabelVAlignment.Center },
+                new OpLabel(new Vector2(310f, 100f), new Vector2(0f, 30f), Translate("Update workshop title:"), FLabelAlignment.Left) { verticalAlignment = LabelVAlignment.Center },
                 cbox_updatetitle = new OpCheckBox(new Configurable<bool>(false), new Vector2(564f, 103f)),
-                new OpLabel(new Vector2(310f, 70f), new Vector2(0f, 30f), Translate("Update workshop description"), FLabelAlignment.Left) { verticalAlignment = LabelVAlignment.Center },
+                new OpLabel(new Vector2(310f, 70f), new Vector2(0f, 30f), Translate("Update workshop description:"), FLabelAlignment.Left) { verticalAlignment = LabelVAlignment.Center },
                 cbox_updatedescr = new OpCheckBox(new Configurable<bool>(false), new Vector2(564f, 73f)),
                 new OpLabel(new Vector2(310f, 40f), new Vector2(0f, 30f), Translate("Mark as public:"), FLabelAlignment.Left) { verticalAlignment = LabelVAlignment.Center },
                 cbox_public = new OpCheckBox(new Configurable<bool>(true), new Vector2(564f, 43f)),
