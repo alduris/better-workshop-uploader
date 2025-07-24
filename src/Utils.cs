@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Menu.Remix.MixedUI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -31,6 +32,11 @@ namespace BetterWorkshopUploader
 
             // Save
             File.WriteAllText(path, json.ToString(Formatting.Indented));
+        }
+
+        public static ulong GetValueULong(this OpTextBox element)
+        {
+            return ulong.TryParse(element.value, out ulong l) ? l : 0;
         }
     }
 }

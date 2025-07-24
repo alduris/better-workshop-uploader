@@ -1,0 +1,15 @@
+{
+  "Name": "Better Workshop Uploader",
+  "ID": "alduris.betterworkshop",
+  "Version": "1.0",
+  "WorkshopID": 3532837046,
+  "LatestGameVersion": "v1.10.4",
+  "UpdateDescription": false,
+  "Tags": [
+    "Tools",
+    "Accessibility",
+    "Utility",
+    "Workshop",
+    "Base"
+  ]
+}

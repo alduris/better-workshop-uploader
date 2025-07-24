@@ -14,7 +14,7 @@ namespace BetterWorkshopUploader
         public string Name;
         public string ID;
         public string Version;
-        public long WorkshopID = 0L;
+        public ulong WorkshopID = 0L;
         public string LatestGameVersion;
         public bool UpdateDescription;
         public HashSet<string> Tags;
@@ -52,7 +52,7 @@ namespace BetterWorkshopUploader
             Name = dataToAdapt.Title;
             ID = dataToAdapt.ID;
             Version = dataToAdapt.Version;
-            WorkshopID = dataToAdapt.WorkshopID;
+            WorkshopID = dataToAdapt.WorkshopID < 0 ? 0L : (ulong)dataToAdapt.WorkshopID;
             LatestGameVersion = dataToAdapt.TargetGameVersion;
             UpdateDescription = !dataToAdapt.UploadFilesOnly;
             Tags = [.. dataToAdapt.Tags];

@@ -5,6 +5,7 @@ using System.Linq;
 using BetterWorkshopUploader.Checks;
 using Menu;
 using Menu.Remix.MixedUI;
+using Menu.Remix.MixedUI.ValueTypes;
 using RWCustom;
 using UnityEngine;
 using LabelVAlignment = Menu.Remix.MixedUI.OpLabel.LabelVAlignment;
@@ -33,62 +34,76 @@ namespace BetterWorkshopUploader
             ];
 
         private ModManager.Mod activeMod;
-        private BWUWorkshopData activeData;
+        internal BWUWorkshopData activeData;
         private List<IUploadCheck> checks;
 
         private OpLabel label_name, label_id, label_version;
         private OpScrollBox sbox_tags, sbox_checks;
-        private OpCheckBox cbox_update;
+        private OpCheckBox cbox_update, cbox_public;
+        private OpHoldButton button_upload;
+        private OpTextBox input_id;
 
         private FileSystemWatcher modWatcher;
+
+        internal ulong DesiredID => input_id.GetValueULong();
+        internal bool UpdateDescription => cbox_update.GetValueBool();
+        internal bool MarkAsPublic => cbox_public.GetValueBool();
+        internal ulong SetNewWorkshopID
+        {
+            set
+            {
+                activeData.WorkshopID = value;
+                activeData.Save();
+            }
+        }
 
         public void Initialize()
         {
             // Create checks
             checks = [
                 new SteamRunningCheck(),
-                // new SteamEULACheck(),
                 new ThumbnailAspectRatioCheck(),
                 new ThumbnailFileSizeCheck(),
                 new ModinfoExistCheck(),
                 new ModRequirementsCheck(),
                 ];
 
-            // Check for stuff we want to know about
-            // TODO: workshop stuff (if exists, is a contributor, etc)
-
             // Create elements
             OpLabel titleLabel;
 
             AddItems([
                 // Title
-                titleLabel = new OpLabel(new Vector2(10f, 570f), new Vector2(580f, 30f), "WORKSHOP UPLOADER", FLabelAlignment.Center, true),
+                titleLabel = new OpLabel(new Vector2(10f, 570f), new Vector2(580f, 30f), Translate("WORKSHOP UPLOADER"), FLabelAlignment.Center, true),
 
                 // Lines
-                new OpImage(new Vector2(0f, 559f), "pixel") { scale = new Vector2(600f, 2f), color = MenuColorEffect.rgbMediumGrey },  // top border
-                new OpImage(new Vector2(299f, 0f), "pixel") { scale = new Vector2(2f, 550f), color = MenuColorEffect.rgbMediumGrey },  // middle vertical border
-                new OpImage(new Vector2(306f, 90f), "pixel") { scale = new Vector2(280f, 2f), color = MenuColorEffect.rgbMediumGrey }, // upload border
+                new OpImage(new Vector2(0f, 559f), "pixel") { scale = new Vector2(600f, 2f), color = MenuColorEffect.rgbMediumGrey },   // top border
+                new OpImage(new Vector2(299f, 0f), "pixel") { scale = new Vector2(2f, 550f), color = MenuColorEffect.rgbMediumGrey },   // middle vertical border
+                new OpImage(new Vector2(306f, 109f), "pixel") { scale = new Vector2(280f, 2f), color = MenuColorEffect.rgbMediumGrey }, // upload border
 
                 // Metadata verification
-                label_name = new OpLabel(new Vector2(10f, 520f), new Vector2(280f, 30f), "NAME HERE") { verticalAlignment = LabelVAlignment.Center },
-                label_id = new OpLabel(new Vector2(10f, 490f), new Vector2(280f, 30f), "ID HERE") { verticalAlignment = LabelVAlignment.Center },
-                label_version = new OpLabel(new Vector2(10f, 460f), new Vector2(280f, 30f), "VERSION HERE") { verticalAlignment = LabelVAlignment.Center },
+                label_name = new OpLabel(new Vector2(10f, 520f), new Vector2(280f, 30f), Translate("NAME HERE")) { verticalAlignment = LabelVAlignment.Center },
+                label_id = new OpLabel(new Vector2(10f, 490f), new Vector2(280f, 30f), Translate("ID HERE")) { verticalAlignment = LabelVAlignment.Center },
+                label_version = new OpLabel(new Vector2(10f, 460f), new Vector2(280f, 30f), Translate("VERSION HERE")) { verticalAlignment = LabelVAlignment.Center },
                 cbox_update = new OpCheckBox(new Configurable<bool>(false), new Vector2(10f, 433f)),
-                new OpLabel(new Vector2(40f, 430f), new Vector2(250f, 30f), "Update workshop description", FLabelAlignment.Left) { verticalAlignment = LabelVAlignment.Center },
+                new OpLabel(new Vector2(40f, 430f), new Vector2(250f, 30f), Translate("Update workshop description"), FLabelAlignment.Left) { verticalAlignment = LabelVAlignment.Center },
                 sbox_tags = new OpScrollBox(new Vector2(10f, 10f), new Vector2(280f, 410f), 0f, false, false, true),
 
                 // Checks
                 sbox_checks = new OpScrollBox(new Vector2(310f, 100f), new Vector2(280f, 460f), 0f, false, false, false),
 
                 // Upload section
-                // force workshop id
-                // visibility
-                // upload button
+                new OpLabel(new Vector2(310f, 70f), new Vector2(0f, 30f), Translate("Workshop ID:"), FLabelAlignment.Left, false),
+                input_id = new OpTextBox(new Configurable<string>("0"), new Vector2(430f, 73f), 160f) { accept = Plugin.ACCEPT_ULONG },
+                new OpLabel(new Vector2(310f, 40f), new Vector2(0f, 30f), Translate("Mark as public:"), FLabelAlignment.Left) { verticalAlignment = LabelVAlignment.Center },
+                cbox_public = new OpCheckBox(new Configurable<bool>(true), new Vector2(564f, 43f)),
+                button_upload = new OpHoldButton(new Vector2(400f, 10f), new Vector2(100f, 24f), Translate("UPLOAD"))
                 ]);
 
             titleLabel.label.shader = Custom.rainWorld.Shaders["MenuText"]; // shiny appearance
 
-            BWUSteamManager.ReceivedNewData += BWUSteamManager_ReceivedNewData;
+            cbox_update.OnChange += UpdateCheckbox_OnChange;
+
+            button_upload.OnPressDone += UploadButton_OnPressDone;
         }
 
         public void FillInModInfo(ModManager.Mod mod)
@@ -103,6 +118,8 @@ namespace BetterWorkshopUploader
             label_id.text = mod.id;
             label_version.text = mod.version;
             UpdateTags();
+
+            input_id.value = mod.id;
 
             // Other stuff
             RunChecks();
@@ -301,6 +318,22 @@ namespace BetterWorkshopUploader
             sbox_checks.SetContentSize(sbox_checks.size.y - y + 10f);
         }
 
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        private void UpdateCheckbox_OnChange()
+        {
+            activeData.UpdateDescription = cbox_update.GetValueBool();
+            activeData.Save();
+        }
+
+        private void UploadButton_OnPressDone(UIfocusable trigger)
+        {
+            trigger.held = false;
+            ActuallyShowUploadDialogue();
+        }
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
         private void ActuallyShowUploadDialogue()
         {
             ModdingMenu.instance.DisplayWorkshopUploadConfirmDialog(activeMod);
@@ -335,11 +368,6 @@ namespace BetterWorkshopUploader
         private void ModWatcher_Error(object sender, ErrorEventArgs e)
         {
             Plugin.Logger.LogError(e.GetException());
-        }
-
-        private void BWUSteamManager_ReceivedNewData()
-        {
-            RunChecks();
         }
     }
 }
