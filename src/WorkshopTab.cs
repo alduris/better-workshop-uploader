@@ -42,6 +42,7 @@ namespace BetterWorkshopUploader
         private OpCheckBox cbox_updatedescr, cbox_updatetitle, cbox_public;
         private OpHoldButton button_upload;
         private OpTextBox input_id;
+        private OpTextArea input_changes;
 
         private FileSystemWatcher modWatcher;
 
@@ -91,6 +92,9 @@ namespace BetterWorkshopUploader
                 // Checks
                 sbox_checks = new OpScrollBox(new Vector2(310f, 300f), new Vector2(280f, 260f), 0f, false, false, false),
 
+                // Changes
+                input_changes = new OpTextArea("", new Vector2(310f, 220f), 280f, 6),
+
                 // Upload section
                 new OpLabel(new Vector2(310f, 170f), new Vector2(0f, 30f), Translate("WORKSHOP INFO"), FLabelAlignment.Left, true) {verticalAlignment = LabelVAlignment.Center },
                 new OpLabel(new Vector2(310f, 130f), new Vector2(0f, 30f), Translate("Workshop ID:"), FLabelAlignment.Left, false),
@@ -101,7 +105,7 @@ namespace BetterWorkshopUploader
                 cbox_updatedescr = new OpCheckBox(new Configurable<bool>(false), new Vector2(564f, 73f)),
                 new OpLabel(new Vector2(310f, 40f), new Vector2(0f, 30f), Translate("Mark as public:"), FLabelAlignment.Left) { verticalAlignment = LabelVAlignment.Center },
                 cbox_public = new OpCheckBox(new Configurable<bool>(true), new Vector2(564f, 43f)),
-                button_upload = new OpHoldButton(new Vector2(400f, 10f), new Vector2(100f, 24f), Translate("UPLOAD"), 40)
+                button_upload = new OpHoldButton(new Vector2(400f, 10f), new Vector2(100f, 24f), Translate("UPLOAD"), 40) { colorEdge = new Color(0.7f, 0.85f, 1f) }
                 ]);
 
             titleLabel.label.shader = Custom.rainWorld.Shaders["MenuText"]; // shiny appearance
