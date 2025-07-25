@@ -38,7 +38,7 @@ namespace BetterWorkshopUploader
                 ID = mod.id;
                 Version = mod.version;
                 Tags ??= [.. mod.tags];
-                LatestGameVersion = RainWorld.GAME_VERSION_STRING;
+                LatestGameVersion = Plugin.GameVersion;
             }
             catch (Exception e)
             {

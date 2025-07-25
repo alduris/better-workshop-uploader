@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
 using System.Security.Permissions;
 using BepInEx;
@@ -8,6 +9,7 @@ using Menu.Remix.MixedUI;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
+using RWCustom;
 using Steamworks;
 using UnityEngine;
 
@@ -23,6 +25,7 @@ internal sealed class Plugin : BaseUnityPlugin
 {
     public static new ManualLogSource Logger;
     public static int workshopTabIndex = -1;
+    public static string GameVersion;
     public static readonly long sessionId = DateTime.Now.Ticks;
     public static WorkshopTab workshopTabInstance;
 
@@ -57,6 +60,9 @@ internal sealed class Plugin : BaseUnityPlugin
             On.SteamWorkshopUploader.Update += SteamWorkshopUploader_Update;
             On.RainWorldSteamManager.OnCreateItemResult += RainWorldSteamManager_OnCreateItemResult;
             IL.RainWorldSteamManager.UploadWorkshopMod += RainWorldSteamManager_UploadWorkshopMod;
+
+            // Get game version
+            GameVersion = File.ReadAllText(Path.Combine(Custom.RootFolderDirectory(), "GameVersion.txt"));
         }
         catch (Exception e)
         {
