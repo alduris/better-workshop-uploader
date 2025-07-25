@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Menu;
-using Menu.Remix;
 using Menu.Remix.MixedUI;
 using RWCustom;
 using UnityEngine;
@@ -12,6 +10,21 @@ using CursorPosition = (int line, int column);
 #pragma warning disable IDE1006 // Naming Styles
 namespace BetterWorkshopUploader
 {
+    /// <summary>
+    /// OpTextArea - a multiline text input for the Remix menu.
+    /// NOTE: this implementation is not finished and is left here in case I decide to finish it in the future.
+    /// DO NOT TRY TO USE THIS IN YOUR OWN PROJECTS unless you manage to fix it in which case that'd be kinda cool (pwease share if so? :pleading_face:)
+    /// 
+    /// Todo:
+    /// - allow actually typing in it
+    /// - allow arrow keys to move around in it while selecting
+    ///   - remix menu currently interprets that as trying to select another remix element
+    ///     - I figure pressing Escape would be a good workaround
+    /// - keep the buttons, yea or nay? I'm leaning towards nay because they don't work
+    /// - reimplement Configurable support?
+    ///   - the big issue with it is the remix menu automatically converts new lines into a string form with an actual backslash character and all
+    ///   - as well as a bunch of other characters too; see <see cref="Menu.Remix.ValueConverter._Escape(string)"/>
+    /// </summary>
     public class OpTextArea : UIconfig, ICanBeTyped
     {
         protected bool _mouseDown;
