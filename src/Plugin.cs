@@ -243,9 +243,9 @@ internal sealed class Plugin : BaseUnityPlugin
         ILLabel brTo;
         var c = new ILCursor(il);
 
-        // Override public (since we're already doing an IL hook here)
+        // Make it think everything is unlisted so we can override the enum however we want
         c.Emit(OpCodes.Ldarg_2);
-        c.EmitDelegate((bool orig) => !workshopTabInstance.MarkAsPublic); // arg 2 is unlisted
+        c.EmitDelegate((bool orig) => true);
         c.Emit(OpCodes.Starg, 2);
 
         // Don't replace title if we don't want to
@@ -267,5 +267,14 @@ internal sealed class Plugin : BaseUnityPlugin
         c.Emit(OpCodes.Ldarg_0);
         c.EmitDelegate((RainWorldSteamManager self) => workshopTabInstance.UpdateDescription || self.lastQueryCount == 0);
         c.Emit(OpCodes.Brfalse, brTo);
+
+        // Set visibility
+        c.GotoNext(MoveType.After, x => x.MatchLdcI4(3));
+        c.EmitDelegate((ERemoteStoragePublishedFileVisibility orig) =>
+        {
+            if (workshopTabInstance.MarkAsPublic)
+                return ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityPublic;
+            return ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityUnlisted;
+        });
     }
 }
