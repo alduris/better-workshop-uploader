@@ -68,6 +68,7 @@ namespace BetterWorkshopUploader
                 new ThumbnailFileSizeCheck(),
                 new ModinfoExistCheck(),
                 new ModRequirementsCheck(),
+                new ModTargetVersionCheck(),
                 ];
 
             // Create elements
