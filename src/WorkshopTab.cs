@@ -205,7 +205,14 @@ namespace BetterWorkshopUploader
                 {
                     if (v != o)
                     {
-                        activeData.Tags.Add(tag);
+                        if (cbox.GetValueBool())
+                        {
+                            activeData.Tags.Add(tag);
+                        }
+                        else
+                        {
+                            activeData.Tags.Remove(tag);
+                        }
                         activeMod.tags = [.. activeData.Tags];
                         activeData.Save();
                         activeMod.SaveModinfo();

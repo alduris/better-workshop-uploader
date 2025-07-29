@@ -34,7 +34,7 @@ namespace BetterWorkshopUploader.Checks
 
         public bool CanRunAction(ModManager.Mod mod, BWUWorkshopData data, bool? result)
         {
-            return result == false && !data.FromCurrentSession;
+            return result == false;
         }
 
         public void RunAction(ModManager.Mod mod, BWUWorkshopData data, bool? result)
