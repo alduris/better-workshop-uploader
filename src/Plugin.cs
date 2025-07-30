@@ -126,7 +126,6 @@ internal sealed class Plugin : BaseUnityPlugin
             {
                 self.value = "0";
             }
-            Logger.LogDebug($"NEW VALUE AS ulong: {ulong.Parse(self.value)}");
         }
         else
         {
