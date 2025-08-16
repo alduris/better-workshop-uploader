@@ -397,13 +397,13 @@ namespace BetterWorkshopUploader
 
         private void ModWatcher_Changed(object sender, FileSystemEventArgs e)
         {
-            if (!e.Name.Equals(Path.GetFullPath(BWUWorkshopData.DataPath(activeMod))))
+            if (!e.Name.Equals(Path.GetFullPath(BWUWorkshopData.DataPath(activeMod))) && !e.Name.Equals(Path.GetFullPath(Path.Combine(activeMod.basePath, "modinfo.json"))))
                 RunChecks();
         }
 
         private void ModWatcher_Created(object sender, FileSystemEventArgs e)
         {
-            if (!e.Name.Equals(Path.GetFullPath(BWUWorkshopData.DataPath(activeMod))))
+            if (!e.Name.Equals(Path.GetFullPath(BWUWorkshopData.DataPath(activeMod))) && !e.Name.Equals(Path.GetFullPath(Path.Combine(activeMod.basePath, "modinfo.json"))))
                 RunChecks();
         }
 
