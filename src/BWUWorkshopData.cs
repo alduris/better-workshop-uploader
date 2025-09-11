@@ -11,19 +11,12 @@ namespace BetterWorkshopUploader
         [JsonIgnore]
         internal string baseFolder;
 
-        public string Name;
-        public string ID;
-        public string Version;
         public ulong WorkshopID = 0L;
         public string LatestGameVersion;
         public bool UpdateTitle = true;
         public bool UpdateDescription = true;
         public bool MarkAsPublic = true;
         public HashSet<string> Tags;
-        internal long LastUpdate = Plugin.sessionId;
-
-        [JsonIgnore]
-        public bool FromCurrentSession => LastUpdate == Plugin.sessionId;
 
         private BWUWorkshopData() { }
 
@@ -34,9 +27,6 @@ namespace BetterWorkshopUploader
             {
                 baseFolder = mod.basePath;
 
-                Name ??= mod.name;
-                ID = mod.id;
-                Version = mod.version;
                 Tags ??= [.. mod.tags];
                 LatestGameVersion = Plugin.GameVersion;
             }
@@ -51,16 +41,12 @@ namespace BetterWorkshopUploader
         {
             baseFolder = dataToAdapt.baseFolder;
 
-            Name = dataToAdapt.Title;
-            ID = dataToAdapt.ID;
-            Version = dataToAdapt.Version;
             WorkshopID = dataToAdapt.WorkshopID < 0 ? 0L : (ulong)dataToAdapt.WorkshopID;
             LatestGameVersion = dataToAdapt.TargetGameVersion;
             UpdateDescription = !dataToAdapt.UploadFilesOnly;
             UpdateTitle = !dataToAdapt.UploadFilesOnly;
             MarkAsPublic = dataToAdapt.Visibility == "Public";
             Tags = [.. dataToAdapt.Tags];
-            LastUpdate = Plugin.sessionId;
         }
 
         internal static string DataPath(string basePath) => Path.Combine(basePath, "bwu.json");
@@ -87,7 +73,6 @@ namespace BetterWorkshopUploader
 
         public void Save()
         {
-            LastUpdate = Plugin.sessionId;
             JObject json = JObject.FromObject(this);
             File.WriteAllText(DataPath(baseFolder), json.ToString(Formatting.Indented));
             // File.WriteAllText(DataPath(baseFolder), JsonConvert.SerializeObject(this, Formatting.Indented));

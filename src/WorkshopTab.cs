@@ -168,17 +168,50 @@ namespace BetterWorkshopUploader
         public void Update()
         {
             // Secret bump version functionality
-            if (label_version.MouseOver && Input.GetMouseButtonDown(0))
+            if (label_version.MouseOver)
             {
-                var version = new Version(activeMod.version);
-                version = new Version(version.Major, version.Minor, version.Build + 1);
-                activeMod.version = version.ToString();
-                activeMod.SaveModinfo();
+                int tick = Input.GetMouseButtonDown(0) ? 1 : (Input.GetMouseButtonDown(1) ? -1 : 0);
+                if (tick != 0)
+                {
+                    var version = new Version(activeMod.version);
+                    if (tick < 0)
+                    {
+                        int major = version.Major;
+                        int minor = version.Minor;
+                        int build = version.Build;
 
-                activeData.Version = activeMod.version;
-                activeData.Save();
+                        if (build <= 0)
+                        {
+                            if (minor <= 0)
+                            {
+                                if (major > 0)
+                                {
+                                    major += tick;
+                                }
+                            }
+                            else
+                            {
+                                minor += tick;
+                            }
+                        }
+                        else
+                        {
+                            build += tick;
+                        }
+                        version = new Version(major, minor, build);
+                    }
+                    else
+                    {
+                        version = new Version(version.Major, version.Minor, version.Build + tick);
+                    }
+                    activeMod.version = version.ToString();
+                    activeMod.SaveModinfo();
 
-                label_version.text = version.ToString();
+                    activeData.Version = activeMod.version;
+                    activeData.Save();
+
+                    label_version.text = version.ToString();
+                }
             }
         }
 
@@ -397,13 +430,13 @@ namespace BetterWorkshopUploader
 
         private void ModWatcher_Changed(object sender, FileSystemEventArgs e)
         {
-            if (!e.Name.Equals(Path.GetFullPath(BWUWorkshopData.DataPath(activeMod))) && !e.Name.Equals(Path.GetFullPath(Path.Combine(activeMod.basePath, "modinfo.json"))))
+            if (!e.Name.EndsWith(".json"))
                 RunChecks();
         }
 
         private void ModWatcher_Created(object sender, FileSystemEventArgs e)
         {
-            if (!e.Name.Equals(Path.GetFullPath(BWUWorkshopData.DataPath(activeMod))) && !e.Name.Equals(Path.GetFullPath(Path.Combine(activeMod.basePath, "modinfo.json"))))
+            if (!e.Name.EndsWith(".json"))
                 RunChecks();
         }
 
