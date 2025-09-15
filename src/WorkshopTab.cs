@@ -206,8 +206,6 @@ namespace BetterWorkshopUploader
                     }
                     activeMod.version = version.ToString();
                     activeMod.SaveModinfo();
-
-                    activeData.Version = activeMod.version;
                     activeData.Save();
 
                     label_version.text = version.ToString();
