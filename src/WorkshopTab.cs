@@ -67,6 +67,7 @@ namespace BetterWorkshopUploader
                 new ThumbnailAspectRatioCheck(),
                 new ThumbnailFileSizeCheck(),
                 new ModinfoExistCheck(),
+                new ValidJsonCheck(),
                 new ModRequirementsCheck(),
                 new ModTargetVersionCheck(),
                 ];

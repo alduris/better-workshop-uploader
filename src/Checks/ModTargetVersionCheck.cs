@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Newtonsoft.Json.Linq;
 
 namespace BetterWorkshopUploader.Checks
@@ -13,9 +14,19 @@ namespace BetterWorkshopUploader.Checks
         {
             var path = Path.Combine(mod.basePath, "modinfo.json");
             if (!File.Exists(path)) return null;
-            var json = JObject.Parse(File.ReadAllText(path));
-            if (!json.ContainsKey("target_game_version")) return null;
-            return mod.targetGameVersion == Plugin.GameVersion;
+            try
+            {
+                var json = JObject.Parse(File.ReadAllText(path));
+                if (!json.ContainsKey("target_game_version")) return null;
+                return mod.targetGameVersion == Plugin.GameVersion;
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.Log(e);
+                UnityEngine.Debug.LogException(e);
+                Plugin.Logger.LogError(e);
+                return null;
+            }
         }
 
         public string ActionText => "FIX";
