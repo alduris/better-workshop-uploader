@@ -1,20 +1,34 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace BetterWorkshopUploader.Checks
 {
     public class ThumbnailFileSizeCheck : IUploadCheck
     {
-        public string Name => "Thumbnail file size under 1 MB";
+        public string Name => "Thumbnail file sizes under 1 MB";
 
         public bool IsHiddenCheck => false;
 
         public bool? RunCheck(ModManager.Mod mod, BWUWorkshopData data)
         {
-            var path = mod.GetThumbnailPath();
-            if (File.Exists(path))
+            string original = mod.GetThumbnailPath();
+            string steam = null;
+
+            if (!string.IsNullOrEmpty(original) && original.EndsWith("thumbnail.png", StringComparison.InvariantCultureIgnoreCase))
             {
-                return new FileInfo(path).Length < 1000000L;
+                steam = original.Replace("thumbnail.png", "thumbnail-steam.png");
             }
+
+            if (!string.IsNullOrEmpty(steam) && File.Exists(steam))
+            {
+                return new FileInfo(steam).Length < 1_000_000L;
+            }
+
+            if (!string.IsNullOrEmpty(original) && File.Exists(original))
+            {
+                return new FileInfo(original).Length < 1_000_000L;
+            }
+
             return null;
         }
     }

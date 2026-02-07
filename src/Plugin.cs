@@ -20,7 +20,7 @@ using UnityEngine;
 
 namespace BetterWorkshopUploader;
 
-[BepInPlugin("alduris.betterworkshop", "Better Workshop Uploader", "1.0.3")]
+[BepInPlugin("alduris.betterworkshop", "Better Workshop Uploader", "1.0.4")]
 internal sealed class Plugin : BaseUnityPlugin
 {
     public static new ManualLogSource Logger;
@@ -275,6 +275,18 @@ internal sealed class Plugin : BaseUnityPlugin
             if (workshopTabInstance.MarkAsPublic)
                 return ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityPublic;
             return ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityUnlisted;
+        });
+
+        // Check for steam specific thumbnail and replace if it exists
+        c.GotoNext(MoveType.After, x => x.MatchCallOrCallvirt(typeof(ModManager.Mod).GetMethod(nameof(ModManager.Mod.GetThumbnailPath), BindingFlags.Public | BindingFlags.Instance)));
+        c.EmitDelegate((string thumbnailPath) =>
+        {
+            if (string.IsNullOrEmpty(thumbnailPath)) return thumbnailPath;
+            if (!thumbnailPath.EndsWith("thumbnail.png", StringComparison.InvariantCultureIgnoreCase)) return thumbnailPath;
+            string result = thumbnailPath.Replace("thumbnail.png", "thumbnail-steam.png");
+            if (!File.Exists(result)) return thumbnailPath;
+
+            return result;
         });
     }
 
