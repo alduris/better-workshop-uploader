@@ -1,7 +1,7 @@
 {
   "id": "alduris.betterworkshop",
   "name": "Better Workshop Uploader",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "authors": "Alduris",
   "description": "Improves the built-in workshop uploader by adding extra checks and the abililty to upload to a particular workshop id.",
   "tags": ["Tools", "Accessibility", "Utility", "Workshop", "Base"],
