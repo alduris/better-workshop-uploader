@@ -12,24 +12,17 @@ namespace BetterWorkshopUploader.Checks
         public bool? RunCheck(ModManager.Mod mod, BWUWorkshopData data)
         {
             string original = mod.GetThumbnailPath();
-            string steam = null;
+            if (string.IsNullOrEmpty(original) || !File.Exists(original)) return null;
 
-            if (!string.IsNullOrEmpty(original) && original.EndsWith("thumbnail.png", StringComparison.InvariantCultureIgnoreCase))
+            if (new FileInfo(original).Length >= 1_000_000L) return false;
+
+            if (original.EndsWith("thumbnail.png", StringComparison.InvariantCultureIgnoreCase))
             {
-                steam = original.Replace("thumbnail.png", "thumbnail-steam.png");
-            }
+                string steam = original.Replace("thumbnail.png", "thumbnail-steam.png");
 
-            if (!string.IsNullOrEmpty(steam) && File.Exists(steam))
-            {
-                return new FileInfo(steam).Length < 1_000_000L;
+                if (File.Exists(steam) && new FileInfo(steam).Length >= 1_000_000L) return false;
             }
-
-            if (!string.IsNullOrEmpty(original) && File.Exists(original))
-            {
-                return new FileInfo(original).Length < 1_000_000L;
-            }
-
-            return null;
+            return true;
         }
     }
 }
