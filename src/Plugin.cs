@@ -279,14 +279,15 @@ internal sealed class Plugin : BaseUnityPlugin
 
         // Check for steam specific thumbnail and replace if it exists
         c.GotoNext(MoveType.After, x => x.MatchCallOrCallvirt(typeof(ModManager.Mod).GetMethod(nameof(ModManager.Mod.GetThumbnailPath), BindingFlags.Public | BindingFlags.Instance)));
-        c.EmitDelegate((string thumbnailPath) =>
+        c.Emit(OpCodes.Ldarg_1);
+        c.EmitDelegate((string origThumbPath, ModManager.Mod mod) =>
         {
-            if (string.IsNullOrEmpty(thumbnailPath)) return thumbnailPath;
-            if (!thumbnailPath.EndsWith("thumbnail.png", StringComparison.InvariantCultureIgnoreCase)) return thumbnailPath;
-            string result = thumbnailPath.Replace("thumbnail.png", "thumbnail-steam.png");
-            if (!File.Exists(result)) return thumbnailPath;
+            if (string.IsNullOrEmpty(origThumbPath)) return origThumbPath;
 
-            return result;
+            var steamPath = mod.SteamThumbnailPath();
+            if (File.Exists(steamPath)) return steamPath;
+
+            return origThumbPath;
         });
     }
 

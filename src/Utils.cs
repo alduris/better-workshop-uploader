@@ -7,6 +7,19 @@ namespace BetterWorkshopUploader
 {
     public static class Utils
     {
+        public static string SteamThumbnailPath(this ModManager.Mod mod)
+        {
+            var baseName = Path.Combine(mod.basePath, "thumbnail-steam");
+            if (File.Exists(baseName + ".png"))
+                return baseName + ".png";
+            if (File.Exists(baseName + ".jpg"))
+                return baseName + ".jpg";
+            if (File.Exists(baseName + ".gif"))
+                return baseName + ".gif";
+
+            return mod.GetThumbnailPath();
+        }
+
         public static void SaveModinfo(this ModManager.Mod mod)
         {
             // Do we need to make a new JSON object or is the user smart enough to have made their own modinfo
