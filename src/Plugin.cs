@@ -276,6 +276,18 @@ internal sealed class Plugin : BaseUnityPlugin
                 return ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityPublic;
             return ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityUnlisted;
         });
+
+        // Check for steam specific thumbnail and replace if it exists
+        c.GotoNext(MoveType.After, x => x.MatchCallOrCallvirt(typeof(ModManager.Mod).GetMethod(nameof(ModManager.Mod.GetThumbnailPath), BindingFlags.Public | BindingFlags.Instance)));
+        c.EmitDelegate((string thumbnailPath) =>
+        {
+            if (string.IsNullOrEmpty(thumbnailPath)) return thumbnailPath;
+            if (!thumbnailPath.EndsWith("thumbnail.png", StringComparison.InvariantCultureIgnoreCase)) return thumbnailPath;
+            string result = thumbnailPath.Replace("thumbnail.png", "thumbnail-steam.png");
+            if (!File.Exists(result)) return thumbnailPath;
+
+            return result;
+        });
     }
 
     private void RainWorldSteamManager_UploadWorkshopMod1(ILContext il)
