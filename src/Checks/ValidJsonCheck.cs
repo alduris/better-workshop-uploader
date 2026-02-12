@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using Menu;
 using Menu.Remix;
 using Newtonsoft.Json.Linq;
 
@@ -9,7 +8,9 @@ namespace BetterWorkshopUploader.Checks
 {
     public class ValidJsonCheck : IUploadCheckWithAction
     {
-        private const string DIALOG_TEXT = "Your modinfo.json has invalid syntax! The game's--for lack of better words--shitty parser doesn't care about that, but it can be problematic. The most likely cause is you forgot to put a comma at the end of a line, or perhaps you added an extra comma where there shouldn't have been.";
+        private const string DIALOG_TEXT = "Your modinfo.json has invalid syntax! The game's--for lack of better words--shitty parser doesn't care about that, " +
+            "but it can be problematic. The most likely cause is you forgot to put a comma at the end of a line, or perhaps you added an extra comma where there " +
+            "shouldn't have been.";
         public string Name => "Valid syntax in modinfo.json";
 
         public bool IsHiddenCheck => false;

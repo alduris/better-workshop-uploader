@@ -7,13 +7,15 @@ namespace BetterWorkshopUploader
 {
     public static class Utils
     {
-        public static string SteamThumbnailPath(this ModManager.Mod mod)
+        public static string SteamThumbnailPath(this ModManager.Mod mod, bool forceAsSteamPng = false)
         {
             var baseName = Path.Combine(mod.basePath, "thumbnail-steam");
-            if (File.Exists(baseName + ".png"))
+            if (forceAsSteamPng || File.Exists(baseName + ".png"))
                 return baseName + ".png";
             if (File.Exists(baseName + ".jpg"))
                 return baseName + ".jpg";
+            if (File.Exists(baseName + ".jpeg")) // because apparently both are valid :rolling_eyes:
+                return baseName + ".jpeg";
             if (File.Exists(baseName + ".gif"))
                 return baseName + ".gif";
 

@@ -14,6 +14,8 @@ namespace BetterWorkshopUploader
 {
     public class WorkshopTab(OptionInterface owner) : OpTab(owner, "Workshop")
     {
+        private const int CHECK_FREQUENCY = 80;
+
         private static readonly List<string> DefaultTags = [
             "Arenas",
             "Regions",
@@ -43,7 +45,7 @@ namespace BetterWorkshopUploader
         private OpHoldButton button_upload;
         private OpTextBox input_id;
 
-        private FileSystemWatcher modWatcher;
+        private int checkCountdown = CHECK_FREQUENCY;
 
         internal ulong DesiredID => activeData.WorkshopID;
         internal bool UpdateTitle => activeData.UpdateTitle;
@@ -66,6 +68,7 @@ namespace BetterWorkshopUploader
                 new SteamRunningCheck(),
                 new ThumbnailAspectRatioCheck(),
                 new ThumbnailFileSizeCheck(),
+                new SteamThumbnailCheck(),
                 new ModinfoExistCheck(),
                 new ValidJsonCheck(),
                 new ModRequirementsCheck(),
@@ -118,7 +121,6 @@ namespace BetterWorkshopUploader
 
         public void FillInModInfo(ModManager.Mod mod)
         {
-            modWatcher?.Dispose();
             activeMod = mod;
             activeData = BWUWorkshopData.FromMod(activeMod);
 
@@ -147,23 +149,6 @@ namespace BetterWorkshopUploader
             // Other stuff
             RunChecks();
             activeData.Save();
-
-            // Watch the mod's files for updates
-            modWatcher = new FileSystemWatcher(mod.basePath);
-            modWatcher.Changed += ModWatcher_Changed;
-            modWatcher.Created += ModWatcher_Created;
-            modWatcher.Deleted += ModWatcher_Deleted;
-            modWatcher.Renamed += ModWatcher_Renamed;
-            modWatcher.Error += ModWatcher_Error;
-            modWatcher.NotifyFilter = NotifyFilters.Attributes
-                                    | NotifyFilters.CreationTime
-                                    | NotifyFilters.DirectoryName
-                                    | NotifyFilters.FileName
-                                    | NotifyFilters.LastWrite
-                                    | NotifyFilters.Security
-                                    | NotifyFilters.Size;
-            modWatcher.IncludeSubdirectories = false;
-            modWatcher.EnableRaisingEvents = true;
         }
 
         public void Update()
@@ -211,6 +196,14 @@ namespace BetterWorkshopUploader
 
                     label_version.text = version.ToString();
                 }
+            }
+
+            // Run checks
+            checkCountdown--;
+            if (checkCountdown <= 0)
+            {
+                RunChecks();
+                checkCountdown = CHECK_FREQUENCY;
             }
         }
 
@@ -424,34 +417,5 @@ namespace BetterWorkshopUploader
         }
 
         public string Translate(string text) => Custom.rainWorld.inGameTranslator.TryTranslate(text, out var translated) ? translated : text;
-
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        private void ModWatcher_Changed(object sender, FileSystemEventArgs e)
-        {
-            if (!e.Name.EndsWith(".json"))
-                RunChecks();
-        }
-
-        private void ModWatcher_Created(object sender, FileSystemEventArgs e)
-        {
-            if (!e.Name.EndsWith(".json"))
-                RunChecks();
-        }
-
-        private void ModWatcher_Deleted(object sender, FileSystemEventArgs e)
-        {
-            RunChecks();
-        }
-
-        private void ModWatcher_Renamed(object sender, RenamedEventArgs e)
-        {
-            RunChecks();
-        }
-
-        private void ModWatcher_Error(object sender, ErrorEventArgs e)
-        {
-            Plugin.Logger.LogError(e.GetException());
-        }
     }
 }
