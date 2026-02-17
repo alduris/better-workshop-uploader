@@ -304,6 +304,10 @@ namespace BetterWorkshopUploader
 
         private void RunChecks()
         {
+            // Importante
+            float oldHeight = sbox_checks.contentSize;
+            float oldScroll = sbox_checks.scrollOffset;
+
             // Clear out old elements
             foreach (var item in sbox_checks.items)
             {
@@ -372,6 +376,14 @@ namespace BetterWorkshopUploader
 
             // Fix size
             sbox_checks.SetContentSize(sbox_checks.size.y - y + 10f);
+
+            // Do not flicker
+            sbox_checks.SetContentSize(sbox_checks.size.y - y + 20f, true);
+            sbox_checks.ScrollOffset = oldScroll + (oldHeight - sbox_checks.contentSize);
+            foreach (UIelement element in sbox_checks.items)
+            {
+                element.lastScreenPos = element.pos;
+            }
         }
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -20,7 +20,7 @@ using UnityEngine;
 
 namespace BetterWorkshopUploader;
 
-[BepInPlugin("alduris.betterworkshop", "Better Workshop Uploader", "1.0.3")]
+[BepInPlugin("alduris.betterworkshop", "Better Workshop Uploader", "1.0.4")]
 internal sealed class Plugin : BaseUnityPlugin
 {
     public static new ManualLogSource Logger;
