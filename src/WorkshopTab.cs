@@ -13,7 +13,7 @@ namespace BetterWorkshopUploader
 {
     public class WorkshopTab(OptionInterface owner) : OpTab(owner, "Workshop")
     {
-        private const int CHECK_FREQUENCY = 80;
+        private const int CHECK_FREQUENCY = 200;
 
         private static readonly List<string> DefaultTags = [
             "Arenas",
