@@ -3,7 +3,7 @@
   "LatestGameVersion": "v1.11.6",
   "UpdateTitle": false,
   "UpdateDescription": false,
-  "MarkAsPublic": true,
+  "Visibility": 0,
   "Tags": [
     "Tools",
     "Accessibility",

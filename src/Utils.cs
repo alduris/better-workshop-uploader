@@ -1,7 +1,9 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Menu.Remix.MixedUI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Steamworks;
 
 namespace BetterWorkshopUploader
 {
@@ -52,6 +54,18 @@ namespace BetterWorkshopUploader
         public static ulong GetValueULong(this OpTextBox element)
         {
             return ulong.TryParse(element.value, out ulong l) ? l : 0;
+        }
+
+        public static ERemoteStoragePublishedFileVisibility ToSteamVisibility(this Visibility val)
+        {
+            return val switch
+            {
+                Visibility.Public => ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityPublic,
+                Visibility.Unlisted or Visibility.DontChange => ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityUnlisted,
+                Visibility.FriendsOnly => ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityFriendsOnly,
+                Visibility.Private => ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityPrivate,
+                _ => throw new InvalidOperationException()
+            };
         }
     }
 }

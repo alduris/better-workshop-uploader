@@ -233,6 +233,8 @@ internal sealed class Plugin : BaseUnityPlugin
     {
         if (callback.m_eResult == EResult.k_EResultOK)
         {
+            workshopTabInstance.UpdateDependencies = false;
+            workshopTabInstance.MarkedVisibility = Visibility.DontChange;
             workshopTabInstance.SetNewWorkshopID = callback.m_nPublishedFileId.m_PublishedFileId;
         }
         orig(self, callback, ioFailure);
@@ -243,10 +245,12 @@ internal sealed class Plugin : BaseUnityPlugin
         ILLabel brTo;
         var c = new ILCursor(il);
 
-        // Make it think everything is unlisted so we can override the enum however we want
-        c.Emit(OpCodes.Ldarg_2);
-        c.EmitDelegate((bool orig) => true);
-        c.Emit(OpCodes.Starg, 2);
+        // Make it think everything is unlisted so we can override the enum however we want when the user wants to change it
+        c.Emit(OpCodes.Ldarga, 2);
+        c.EmitDelegate((ref bool orig) =>
+        {
+            orig = workshopTabInstance.DesiredID == 0 || workshopTabInstance.MarkedVisibility != Visibility.DontChange;
+        });
 
         // Don't replace title if we don't want to
         c.GotoNext(x => x.MatchCallOrCallvirt(typeof(SteamUGC).GetMethod(nameof(SteamUGC.SetItemTitle), BindingFlags.Static | BindingFlags.Public)));
@@ -272,10 +276,36 @@ internal sealed class Plugin : BaseUnityPlugin
         c.GotoNext(MoveType.After, x => x.MatchLdcI4(3));
         c.EmitDelegate((ERemoteStoragePublishedFileVisibility orig) =>
         {
-            if (workshopTabInstance.MarkAsPublic)
-                return ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityPublic;
-            return ERemoteStoragePublishedFileVisibility.k_ERemoteStoragePublishedFileVisibilityUnlisted;
+            return workshopTabInstance.MarkedVisibility.ToSteamVisibility();
         });
+
+        // Add dependencies
+        c.GotoNext(MoveType.After, x => x.MatchCallOrCallvirt(typeof(SteamUGC).GetMethod(nameof(SteamUGC.SetItemContent))));
+        c.Emit(OpCodes.Ldarg_0);
+        c.EmitDelegate((RainWorldSteamManager self) =>
+        {
+            if (workshopTabInstance.UpdateDependencies)
+            {
+                var uploadId = self.updateHandle.m_UGCUpdateHandle;
+                foreach (var depId in self.uploadingMod.requirements)
+                {
+                    var dep = ModManager.GetModById(depId);
+                    if (dep.workshopMod && dep.workshopId > 0)
+                    {
+                        SteamUGC.AddDependency(new PublishedFileId_t(uploadId), new PublishedFileId_t(dep.workshopId));
+                    }
+                    else if (dep.id == MoreSlugcats.MoreSlugcats.MOD_ID || dep.id == Expedition.Expedition.MOD_ID || dep.id == JollyCoop.JollyCoop.MOD_ID)
+                    {
+                        SteamUGC.AddAppDependency(new PublishedFileId_t(uploadId), new AppId_t(1933390u));
+                    }
+                    else if (dep.id == Watcher.Watcher.MOD_ID)
+                    {
+                        SteamUGC.AddAppDependency(new PublishedFileId_t(uploadId), new AppId_t(2857120u));
+                    }
+                }
+            }
+        });
+        
 
         // Check for steam specific thumbnail and replace if it exists
         c.GotoNext(MoveType.After, x => x.MatchCallOrCallvirt(typeof(ModManager.Mod).GetMethod(nameof(ModManager.Mod.GetThumbnailPath), BindingFlags.Public | BindingFlags.Instance)));

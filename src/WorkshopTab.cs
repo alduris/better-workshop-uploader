@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using BetterWorkshopUploader.Checks;
 using Menu;
@@ -41,16 +40,52 @@ namespace BetterWorkshopUploader
 
         private OpLabel label_name, label_id, label_version;
         private OpScrollBox sbox_tags, sbox_checks;
-        private OpCheckBox cbox_updatedescr, cbox_updatetitle, cbox_public;
+        private OpCheckBox cbox_updatedescr, cbox_updatetitle, cbox_updatedeps;
         private OpHoldButton button_upload;
         private OpTextBox input_id;
+        private OpResourceSelector combo_visibility;
 
         private int checkCountdown = CHECK_FREQUENCY;
 
         internal ulong DesiredID => activeData.WorkshopID;
-        internal bool UpdateTitle => activeData.UpdateTitle;
-        internal bool UpdateDescription => activeData.UpdateDescription;
-        internal bool MarkAsPublic => activeData.MarkAsPublic;
+        internal bool UpdateTitle
+        {
+            get => activeData.UpdateTitle;
+            set
+            {
+                activeData.UpdateTitle = value;
+                cbox_updatetitle.SetValueBool(value);
+            }
+        }
+
+        internal bool UpdateDescription
+        {
+            get => activeData.UpdateDescription;
+            set
+            {
+                activeData.UpdateDescription = value;
+                cbox_updatedescr.SetValueBool(value);
+            }
+        }
+        internal bool UpdateDependencies
+        {
+            get => cbox_updatedeps.GetValueBool();
+            set => cbox_updatedeps.SetValueBool(value);
+        }
+
+        internal Visibility MarkedVisibility
+        {
+            get => (Visibility)Enum.Parse(typeof(Visibility), combo_visibility.value);
+            set
+            {
+                if (value != activeData.Visibility)
+                {
+                    activeData.Visibility = value;
+                    combo_visibility.value = value.ToString();
+                }
+            }
+        }
+
         internal ulong SetNewWorkshopID
         {
             set
@@ -85,7 +120,7 @@ namespace BetterWorkshopUploader
                 // Lines
                 new OpImage(new Vector2(0f, 559f), "pixel") { scale = new Vector2(600f, 2f), color = MenuColorEffect.rgbMediumGrey },   // top border
                 new OpImage(new Vector2(299f, 0f), "pixel") { scale = new Vector2(2f, 550f), color = MenuColorEffect.rgbMediumGrey },   // middle vertical border
-                new OpImage(new Vector2(306f, 209f), "pixel") { scale = new Vector2(292f, 2f), color = MenuColorEffect.rgbMediumGrey }, // upload border
+                new OpImage(new Vector2(306f, 239f), "pixel") { scale = new Vector2(292f, 2f), color = MenuColorEffect.rgbMediumGrey }, // upload border
 
                 // Metadata verification
                 label_name = new OpLabel(new Vector2(10f, 520f), new Vector2(280f, 30f), Translate("NAME HERE")) { verticalAlignment = LabelVAlignment.Center },
@@ -97,15 +132,18 @@ namespace BetterWorkshopUploader
                 sbox_checks = new OpScrollBox(new Vector2(310f, 300f), new Vector2(280f, 260f), 0f, false, false, false),
 
                 // Upload section
-                new OpLabel(new Vector2(310f, 170f), new Vector2(0f, 30f), Translate("WORKSHOP INFO"), FLabelAlignment.Left, true) {verticalAlignment = LabelVAlignment.Center },
-                new OpLabel(new Vector2(310f, 130f), new Vector2(0f, 30f), Translate("Workshop ID:"), FLabelAlignment.Left, false),
-                input_id = new OpTextBox(new Configurable<string>("0"), new Vector2(430f, 133f), 160f) { accept = Plugin.ACCEPT_ULONG },
-                new OpLabel(new Vector2(310f, 100f), new Vector2(0f, 30f), Translate("Update workshop title:"), FLabelAlignment.Left) { verticalAlignment = LabelVAlignment.Center },
-                cbox_updatetitle = new OpCheckBox(new Configurable<bool>(false), new Vector2(564f, 103f)),
-                new OpLabel(new Vector2(310f, 70f), new Vector2(0f, 30f), Translate("Update workshop description:"), FLabelAlignment.Left) { verticalAlignment = LabelVAlignment.Center },
-                cbox_updatedescr = new OpCheckBox(new Configurable<bool>(false), new Vector2(564f, 73f)),
-                new OpLabel(new Vector2(310f, 40f), new Vector2(0f, 30f), Translate("Mark as public:"), FLabelAlignment.Left) { verticalAlignment = LabelVAlignment.Center },
-                cbox_public = new OpCheckBox(new Configurable<bool>(true), new Vector2(564f, 43f)),
+                new OpLabel(new Vector2(310f, 200f), new Vector2(0f, 30f), Translate("WORKSHOP INFO"), FLabelAlignment.Left, true) { verticalAlignment = LabelVAlignment.Center },
+                input_id = new OpTextBox(new Configurable<string>("0"), new Vector2(430f, 163f), 160f) { accept = Plugin.ACCEPT_ULONG },
+                new OpLabel(new Vector2(310f, 160f), new Vector2(0f, 30f), Translate("Workshop ID:"), FLabelAlignment.Left, false) { bumpBehav = input_id.bumpBehav },
+                cbox_updatetitle = new OpCheckBox(new Configurable<bool>(false), new Vector2(564f, 133f)),
+                new OpLabel(new Vector2(310f, 130f), new Vector2(0f, 30f), Translate("Update workshop title:"), FLabelAlignment.Left) { verticalAlignment = LabelVAlignment.Center, bumpBehav = cbox_updatetitle.bumpBehav },
+                cbox_updatedescr = new OpCheckBox(new Configurable<bool>(false), new Vector2(564f, 103f)),
+                new OpLabel(new Vector2(310f, 100f), new Vector2(0f, 30f), Translate("Update workshop description:"), FLabelAlignment.Left) { verticalAlignment = LabelVAlignment.Center, bumpBehav = cbox_updatedescr.bumpBehav },
+                // 100f
+                cbox_updatedeps = new OpCheckBox(new Configurable<bool>(false), new Vector2(564f, 73f)),
+                new OpLabel(new Vector2(310f, 70f), new Vector2(0f, 30f), "Update workshop dependencies:", FLabelAlignment.Left) { verticalAlignment = LabelVAlignment.Center, bumpBehav= cbox_updatedeps.bumpBehav },
+                combo_visibility = new OpResourceSelector(new Configurable<Visibility>(Visibility.DontChange), new Vector2(470f, 43f), 120f),
+                new OpLabel(new Vector2(310f, 40f), new Vector2(0f, 30f), Translate("Set item visibility:"), FLabelAlignment.Left) { verticalAlignment = LabelVAlignment.Center, bumpBehav = combo_visibility.bumpBehav },
                 button_upload = new OpHoldButton(new Vector2(400f, 10f), new Vector2(100f, 24f), Translate("UPLOAD"), 40) { colorEdge = new Color(0.7f, 0.85f, 1f) }
                 ]);
 
@@ -113,7 +151,7 @@ namespace BetterWorkshopUploader
 
             cbox_updatetitle.OnChange += UpdateTitleCheckbox_OnChange;
             cbox_updatedescr.OnChange += UpdateDescriptionCheckbox_OnChange;
-            cbox_public.OnChange += PublicCheckbox_OnChange;
+            combo_visibility.OnChange += VisibilityComboBox_OnChange;
             input_id.OnChange += IdInput_OnChange;
 
             button_upload.OnPressDone += UploadButton_OnPressDone;
@@ -144,7 +182,8 @@ namespace BetterWorkshopUploader
 
             cbox_updatetitle.SetValueBool(activeData.UpdateTitle);
             cbox_updatedescr.SetValueBool(activeData.UpdateDescription);
-            cbox_public.SetValueBool(activeData.MarkAsPublic);
+            cbox_updatedeps.SetValueBool(activeData.WorkshopID == 0);
+            combo_visibility.value = activeData.Visibility.ToString();
 
             // Other stuff
             RunChecks();
@@ -344,7 +383,7 @@ namespace BetterWorkshopUploader
                     };
                     var label_checkName = new OpLabel(new Vector2(0f, y), new Vector2(boxWidth - buttonWidth - 6f, height), check.Name, FLabelAlignment.Left, false)
                     {
-                        verticalAlignment = OpLabel.LabelVAlignment.Center
+                        verticalAlignment = LabelVAlignment.Center
                     };
                     var label_checkResult = new OpLabel(new Vector2(0f, y), new Vector2(boxWidth - buttonWidth - 6f, height), resultString, FLabelAlignment.Right, false)
                     {
@@ -354,7 +393,7 @@ namespace BetterWorkshopUploader
                             false => new Color(1f, 0.1f, 0.1f),
                             null => MenuColorEffect.rgbDarkGrey,
                         },
-                        verticalAlignment = OpLabel.LabelVAlignment.Center
+                        verticalAlignment = LabelVAlignment.Center
                     };
 
                     sbox_checks.AddItems(label_checkName, label_checkResult);
@@ -367,6 +406,7 @@ namespace BetterWorkshopUploader
                             action.RunAction(activeMod, activeData, result);
                             RunChecks();
                         };
+                        label_checkName.bumpBehav = button.bumpBehav;
                         sbox_checks.AddItems(button);
                     }
                 }
@@ -400,12 +440,12 @@ namespace BetterWorkshopUploader
             activeData.Save();
         }
 
-        private void PublicCheckbox_OnChange()
+        private void VisibilityComboBox_OnChange()
         {
-            activeData.MarkAsPublic = cbox_public.GetValueBool();
+            activeData.Visibility = Enum.TryParse<Visibility>(combo_visibility.value, out var v) ? v : Visibility.DontChange;
             activeData.Save();
         }
-
+        
         private void IdInput_OnChange()
         {
             if (input_id.GetValueULong() != activeData.WorkshopID)

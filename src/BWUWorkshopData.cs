@@ -15,7 +15,7 @@ namespace BetterWorkshopUploader
         public string LatestGameVersion;
         public bool UpdateTitle = true;
         public bool UpdateDescription = true;
-        public bool MarkAsPublic = true;
+        public Visibility Visibility = Visibility.Unlisted;
         public HashSet<string> Tags;
 
         private BWUWorkshopData() { }
@@ -45,7 +45,7 @@ namespace BetterWorkshopUploader
             LatestGameVersion = dataToAdapt.TargetGameVersion;
             UpdateDescription = !dataToAdapt.UploadFilesOnly;
             UpdateTitle = !dataToAdapt.UploadFilesOnly;
-            MarkAsPublic = dataToAdapt.Visibility == "Public";
+            Visibility = Enum.TryParse<Visibility>(dataToAdapt.Visibility, out var v) ? v : Visibility.DontChange;
             Tags = [.. dataToAdapt.Tags];
         }
 
