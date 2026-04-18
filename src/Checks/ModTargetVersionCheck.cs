@@ -18,7 +18,7 @@ namespace BetterWorkshopUploader.Checks
             {
                 var json = JObject.Parse(File.ReadAllText(path));
                 if (!json.ContainsKey("target_game_version")) return null;
-                return mod.targetGameVersion == Plugin.GameVersion;
+                return Plugin.GameVersion.StartsWith(mod.targetGameVersion);
             }
             catch (Exception e)
             {
