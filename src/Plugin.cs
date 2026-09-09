@@ -60,7 +60,6 @@ internal sealed class Plugin : BaseUnityPlugin
             On.SteamWorkshopUploader.Update += SteamWorkshopUploader_Update;
             On.RainWorldSteamManager.OnCreateItemResult += RainWorldSteamManager_OnCreateItemResult;
             IL.RainWorldSteamManager.UploadWorkshopMod += RainWorldSteamManager_UploadWorkshopMod;
-            IL.RainWorldSteamManager.UploadWorkshopMod += RainWorldSteamManager_UploadWorkshopMod1; // thanks @SaltiestSyrup on GitHub
 
             // Get game version
             GameVersion = File.ReadAllText(Path.Combine(Custom.RootFolderDirectory(), "GameVersion.txt"));
@@ -319,27 +318,5 @@ internal sealed class Plugin : BaseUnityPlugin
 
             return origThumbPath;
         });
-    }
-
-    private void RainWorldSteamManager_UploadWorkshopMod1(ILContext il)
-    {
-        ILCursor c = new(il);
-
-        c.GotoNext(MoveType.After,
-            x => x.MatchStfld(typeof(RainWorldSteamManager).GetField(nameof(RainWorldSteamManager.updateHandle), BindingFlags.NonPublic | BindingFlags.Instance))
-            );
-
-        c.Emit(OpCodes.Ldarg_0);
-        c.EmitDelegate(RemoveTags);
-
-        static void RemoveTags(RainWorldSteamManager self)
-        {
-            SteamUGC.RemoveItemKeyValueTags(self.updateHandle, "id");
-            SteamUGC.RemoveItemKeyValueTags(self.updateHandle, "version");
-            SteamUGC.RemoveItemKeyValueTags(self.updateHandle, "targetGameVersion");
-            SteamUGC.RemoveItemKeyValueTags(self.updateHandle, "authors");
-            SteamUGC.RemoveItemKeyValueTags(self.updateHandle, "requirements");
-            SteamUGC.RemoveItemKeyValueTags(self.updateHandle, "requirementNames");
-        }
     }
 }
